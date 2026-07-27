@@ -1,0 +1,254 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #08080a;
+  --color-ink-2: #0e0e12;
+  --color-surface: #141418;
+  --color-surface-2: #1c1c22;
+  --color-line: #2a2a32;
+  --color-line-soft: #212127;
+
+  --color-silver-hi: #f2f2f6;
+  --color-silver: #b9b9c4;
+  --color-silver-lo: #6e6e78;
+
+  --color-gold-hi: #fbe9a6;
+  --color-gold: #f4ce1f;
+  --color-gold-lo: #a9840e;
+
+  --color-text: #f4f4f6;
+  --color-muted: #9a9aa5;
+  --color-muted-2: #6a6a74;
+
+  --color-ok: #4ea87a;
+  --color-danger: #c85a5a;
+
+  --font-display: var(--font-cinzel), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-sora), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --ease-guild: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.texture {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.texture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(244, 206, 31, 0.09), transparent 55%),
+    radial-gradient(90% 60% at 50% 115%, rgba(244, 206, 31, 0.05), transparent 60%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.014) 0px,
+      rgba(255, 255, 255, 0.014) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+}
+
+.texture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@layer components {
+.text-silver-grad {
+  background: linear-gradient(180deg, var(--color-silver-hi) 0%, var(--color-silver) 48%, var(--color-silver-lo) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gold-grad {
+  background: linear-gradient(180deg, var(--color-gold-hi) 0%, var(--color-gold) 55%, var(--color-gold-lo) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.field-input {
+  width: 100%;
+  padding: 0.875rem 0.95rem 0.875rem 2.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+  color: var(--color-text);
+  font-size: 0.95rem;
+  transition: border-color 0.25s var(--ease-guild), box-shadow 0.25s var(--ease-guild), background 0.25s;
+}
+
+.field-input::placeholder {
+  color: var(--color-muted-2);
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  background: var(--color-surface-2);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.13);
+}
+
+.field-input:-webkit-autofill,
+.field-input:-webkit-autofill:hover,
+.field-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  caret-color: var(--color-text);
+  -webkit-box-shadow: 0 0 0 40px var(--color-surface) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.btn-gold {
+  position: relative;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, #fbe9a6, #f4ce1f 55%, #c79c12);
+  color: #1a1405;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 10px 24px rgba(0, 0, 0, 0.5);
+  transition: transform 0.18s var(--ease-guild), box-shadow 0.25s var(--ease-guild);
+}
+
+.btn-gold:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 14px 30px rgba(0, 0, 0, 0.6);
+}
+
+.btn-gold:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-guild), background 0.2s var(--ease-guild);
+}
+
+.btn-ghost:hover {
+  border-color: var(--color-silver-lo);
+  background: var(--color-surface-2);
+}
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold-hi);
+  outline-offset: 2px;
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal {
+  opacity: 0;
+  animation: reveal-up 0.6s var(--ease-guild) forwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+/* Selo de guilda: brilho dourado que desliza pela divisória (uma vez, ao revelar) */
+.divider-glint {
+  position: relative;
+  overflow: hidden;
+}
+
+.divider-glint::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--color-gold-hi), transparent);
+  transform: translateX(-100%);
+  animation: glint-sweep 1.1s var(--ease-guild) 1s 1 both;
+}
+
+@keyframes glint-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Selo de guilda: brilho dourado que passa pelas bordas do card no hover */
+.role-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.role-card::after {
+  content: "";
+  position: absolute;
+  inset: -60% -40%;
+  background: linear-gradient(75deg, transparent 42%, rgba(244, 206, 31, 0.16) 50%, transparent 58%);
+  transform: translateX(-140%);
+  transition: transform 0.75s var(--ease-guild);
+  pointer-events: none;
+}
+
+.role-card:hover::after {
+  transform: translateX(140%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+    opacity: 1;
+  }
+
+  .divider-glint::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .role-card::after {
+    transition: none;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

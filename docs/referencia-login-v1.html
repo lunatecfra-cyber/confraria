@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0b" />
+<meta name="color-scheme" content="dark" />
+<meta name="description" content="Confraria — a guilda de editores da missão. Entre, pegue vídeos da fila e suba de nível." />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Confraria" />
+<title>Confraria — Entrar</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 108'%3E%3Cpath d='M48 3 89 20v34c0 26-19 41-41 51C27 95 7 80 7 54V20z' fill='%230a0a0b' stroke='%23c9c9d1' stroke-width='4'/%3E%3Cpath d='M58 40a20 20 0 1 0 0 30' fill='none' stroke='%23e9e9ee' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M44 46 60 55 44 64Z' fill='%23e9e9ee'/%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 108'%3E%3Cpath d='M48 3 89 20v34c0 26-19 41-41 51C27 95 7 80 7 54V20z' fill='%230a0a0b' stroke='%23c9c9d1' stroke-width='4'/%3E%3Cpath d='M58 40a20 20 0 1 0 0 30' fill='none' stroke='%23e9e9ee' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M44 46 60 55 44 64Z' fill='%23e9e9ee'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --black: #0a0a0b;
+    --black-2: #101012;
+    --surface: #16161a;
+    --surface-2: #1c1c21;
+    --line: #2a2a30;
+    --line-soft: #232328;
+    --text: #f4f4f6;
+    --muted: #8f8f99;
+    --muted-2: #63636d;
+    --silver-lo: #6e6e78;
+    --silver-mid: #b9b9c4;
+    --silver-hi: #f2f2f6;
+    --radius: 18px;
+    --ease: cubic-bezier(.22,.61,.36,1);
+    --font-ui: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Cinzel', Georgia, 'Times New Roman', serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  body {
+    font-family: var(--font-ui);
+    background: var(--black);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* ---------- atmosphere ---------- */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(185,185,196,.10), transparent 55%),
+      radial-gradient(90% 60% at 50% 120%, rgba(120,120,135,.08), transparent 60%),
+      var(--black);
+  }
+  .bg::before {
+    /* subtle vertical guild-hall light */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.03), transparent 30%, transparent 70%, rgba(0,0,0,.4));
+  }
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: .05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- shell ---------- */
+  .shell {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* brand panel */
+  .brand {
+    display: none;
+  }
+
+  /* ---------- login column ---------- */
+  .login {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 22px calc(28px + env(safe-area-inset-bottom));
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 400px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .card > * { max-width: 100%; }
+
+  /* crest */
+  .crest {
+    width: 96px;
+    height: 108px;
+    margin-bottom: 26px;
+    filter: drop-shadow(0 6px 22px rgba(0,0,0,.6));
+    opacity: 0;
+    animation: rise .9s var(--ease) forwards;
+  }
+  .crest .shine { animation: sweep 6s linear infinite; }
+
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(23px, 6.4vw, 30px);
+    letter-spacing: .28em;
+    text-indent: .28em;
+    white-space: nowrap;
+    background: linear-gradient(180deg, var(--silver-hi) 0%, var(--silver-mid) 48%, var(--silver-lo) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    opacity: 0;
+    animation: rise .9s var(--ease) .08s forwards;
+  }
+  .tagline {
+    margin-top: 12px;
+    font-size: 12.5px;
+    font-weight: 300;
+    letter-spacing: .04em;
+    color: var(--muted);
+    text-align: center;
+    opacity: 0;
+    animation: rise .9s var(--ease) .16s forwards;
+  }
+
+  .divider {
+    width: 46px;
+    height: 1px;
+    margin: 26px 0 22px;
+    background: linear-gradient(90deg, transparent, var(--silver-lo), transparent);
+    opacity: 0;
+    animation: fade .9s var(--ease) .24s forwards;
+  }
+
+  /* role selector */
+  .roles {
+    width: 100%;
+    display: flex;
+    gap: 6px;
+    padding: 5px;
+    background: var(--black-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 13px;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: rise .9s var(--ease) .30s forwards;
+  }
+  .role {
+    flex: 1;
+    position: relative;
+    padding: 9px 4px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: .02em;
+    cursor: pointer;
+    transition: color .25s var(--ease), background .25s var(--ease);
+  }
+  .role[aria-pressed="true"] {
+    color: var(--black);
+    background: linear-gradient(180deg, var(--silver-hi), var(--silver-mid));
+    box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 4px 14px rgba(0,0,0,.4);
+  }
+  .role[disabled] { cursor: not-allowed; opacity: .5; }
+  .role .soon {
+    display: block;
+    font-size: 8.5px;
+    letter-spacing: .12em;
+    color: var(--muted-2);
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+
+  /* form */
+  form { width: 100%; opacity: 0; animation: rise .9s var(--ease) .38s forwards; }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-wrap svg { position: absolute; left: 15px; width: 17px; height: 17px; color: var(--muted-2); transition: color .25s; }
+  input {
+    width: 100%;
+    padding: 14px 15px 14px 44px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    transition: border-color .25s var(--ease), box-shadow .25s var(--ease), background .25s;
+  }
+  input::placeholder { color: var(--muted-2); }
+  input:focus {
+    outline: none;
+    border-color: var(--silver-mid);
+    background: var(--surface-2);
+    box-shadow: 0 0 0 3px rgba(185,185,196,.10);
+  }
+  .input-wrap:focus-within svg { color: var(--silver-mid); }
+  /* keep browser autofill on-theme (Chrome paints a light bg by default) */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text);
+    caret-color: var(--text);
+    -webkit-box-shadow: 0 0 0 40px var(--surface) inset;
+    box-shadow: 0 0 0 40px var(--surface) inset;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+  input.invalid { border-color: #c85a5a; box-shadow: 0 0 0 3px rgba(200,90,90,.12); }
+  /* password reveal toggle */
+  .pw-input { padding-right: 46px; }
+  .pw-toggle {
+    position: absolute;
+    right: 6px;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--muted-2);
+    cursor: pointer;
+    transition: color .2s var(--ease), background .2s var(--ease);
+  }
+  .pw-toggle:hover { color: var(--silver-mid); background: rgba(255,255,255,.04); }
+  .pw-toggle svg { position: static; width: 18px; height: 18px; left: auto; }
+  .pw-toggle .eye-off { display: none; }
+  .pw-toggle[aria-pressed="true"] .eye-on { display: none; }
+  .pw-toggle[aria-pressed="true"] .eye-off { display: block; }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 4px 0 20px;
+  }
+  .check { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .check input { width: auto; padding: 0; }
+  .box {
+    width: 16px; height: 16px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--surface);
+    display: inline-grid;
+    place-items: center;
+    transition: all .2s var(--ease);
+  }
+  .check input { position: absolute; opacity: 0; pointer-events: none; }
+  .check input:checked + .box { background: var(--silver-mid); border-color: var(--silver-mid); }
+  .check input:focus-visible + .box { box-shadow: 0 0 0 3px rgba(185,185,196,.25); border-color: var(--silver-mid); }
+  .box svg { width: 11px; height: 11px; color: var(--black); opacity: 0; transition: opacity .15s; }
+  .check input:checked + .box svg { opacity: 1; }
+  .check span { font-size: 12.5px; color: var(--muted); }
+  .link { font-size: 12.5px; color: var(--muted); text-decoration: none; transition: color .2s; }
+  .link:hover { color: var(--silver-hi); }
+
+  .btn {
+    position: relative;
+    width: 100%;
+    padding: 15px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f4f4f6, #c4c4cd 55%, #a4a4af);
+    color: #0c0c0e;
+    font-family: var(--font-ui);
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 10px 24px rgba(0,0,0,.45);
+    transition: transform .18s var(--ease), box-shadow .25s var(--ease);
+  }
+  .btn::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -120%;
+    width: 60%; height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.85), transparent);
+    transform: skewX(-18deg);
+    transition: left .6s var(--ease);
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 14px 30px rgba(0,0,0,.55); }
+  .btn:hover::after { left: 140%; }
+  .btn:active { transform: translateY(0); }
+
+  .form-msg {
+    min-height: 0;
+    margin: -8px 0 14px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: #d98a8a;
+    text-align: center;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity .25s var(--ease), max-height .25s var(--ease), margin .25s var(--ease);
+  }
+  .form-msg.show { opacity: 1; max-height: 80px; }
+
+  /* keyboard focus rings (only for keyboard users) */
+  .btn:focus-visible,
+  .role:focus-visible,
+  .pw-toggle:focus-visible {
+    outline: 2px solid var(--silver-hi);
+    outline-offset: 2px;
+  }
+  .link:focus-visible,
+  .alt a:focus-visible {
+    outline: 2px solid var(--silver-mid);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+
+  .alt {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--muted);
+    opacity: 0;
+    animation: rise .9s var(--ease) .46s forwards;
+  }
+  .alt a { color: var(--silver-hi); text-decoration: none; font-weight: 500; }
+  .alt a:hover { text-decoration: underline; }
+
+  .foot {
+    margin-top: 30px;
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+    text-align: center;
+    opacity: 0;
+    animation: fade .9s var(--ease) .54s forwards;
+  }
+
+  /* ---------- animations ---------- */
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes sweep { 0% { transform: translateX(-120%); } 60%,100% { transform: translateX(120%); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; }
+    .crest, .wordmark, .tagline, .divider, .roles, form, .alt, .foot { opacity: 1 !important; }
+  }
+
+  /* ---------- desktop: two-panel guild hall ---------- */
+  @media (min-width: 860px) {
+    .shell { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 54px 56px;
+      position: relative;
+      border-right: 1px solid var(--line-soft);
+      overflow: hidden;
+    }
+    .brand::before {
+      content: "";
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(70% 50% at 30% 20%, rgba(185,185,196,.10), transparent 60%),
+        radial-gradient(60% 60% at 80% 90%, rgba(120,120,135,.08), transparent 60%);
+    }
+    .brand-top { position: relative; display: flex; align-items: center; gap: 12px; }
+    .brand-top .mini { width: 34px; height: 38px; }
+    .brand-top span {
+      font-family: var(--font-display); font-weight: 600; font-size: 15px;
+      letter-spacing: .3em; color: var(--silver-mid);
+    }
+    .brand-hero { position: relative; max-width: 440px; }
+    .brand-hero h1 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: clamp(34px, 3.4vw, 52px);
+      line-height: 1.1;
+      letter-spacing: .01em;
+      background: linear-gradient(160deg, var(--silver-hi), var(--silver-mid) 60%, var(--silver-lo));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .brand-hero p {
+      margin-top: 20px; font-size: 15.5px; line-height: 1.7;
+      color: var(--muted); font-weight: 300; max-width: 380px;
+    }
+    .pillars { position: relative; display: flex; flex-direction: column; gap: 14px; }
+    .pillar { display: flex; align-items: center; gap: 13px; color: var(--muted); font-size: 13.5px; }
+    .pillar .dot {
+      width: 30px; height: 30px; border-radius: 9px; flex: 0 0 auto;
+      display: grid; place-items: center;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--silver-mid);
+    }
+    .pillar .dot svg { width: 15px; height: 15px; }
+    .pillar b { color: var(--text); font-weight: 500; }
+    .login { min-height: 100vh; min-height: 100dvh; padding: 40px; }
+  }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="grain"></div>
+
+  <div class="shell">
+    <!-- Brand / guild-hall panel (desktop) -->
+    <aside class="brand">
+      <div class="brand-top">
+        <svg class="mini" viewBox="0 0 96 108" fill="none" aria-hidden="true">
+          <path d="M48 3 89 20v34c0 26-19 41-41 51C27 95 7 80 7 54V20z" stroke="#c4c4cd" stroke-width="2.4"/>
+          <path d="M58 40a20 20 0 1 0 0 30" stroke="#e2e2e8" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M44 46 60 55 44 64Z" fill="#e2e2e8"/>
+        </svg>
+        <span>CONFRARIA</span>
+      </div>
+
+      <div class="brand-hero">
+        <h1>A guilda de<br />quem edita a<br />missão.</h1>
+        <p>Onde o bruto vira arte. Editores entram provando valor, sobem de nível e desbloqueiam os trabalhos da missão — em ordem, com mérito.</p>
+      </div>
+
+      <div class="pillars">
+        <div class="pillar">
+          <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="10 8 16 12 10 16 10 8"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></span>
+          <div>Pegue vídeos da fila e <b>reserve</b> o que vai editar.</div>
+        </div>
+        <div class="pillar">
+          <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <div>Entregue, passe pelo <b>inspetor</b> e ganhe reputação.</div>
+        </div>
+        <div class="pillar">
+          <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z"/></svg></span>
+          <div>Suba de <b>Aspirante a Mestre</b> — e desbloqueie os pagos.</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Login -->
+    <main class="login">
+      <div class="card">
+        <h1 class="sr-only">Confraria — entrar como editor</h1>
+        <svg class="crest" viewBox="0 0 96 108" role="img" aria-label="Brasão da Confraria">
+          <defs>
+            <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#f2f2f6"/>
+              <stop offset=".5" stop-color="#b9b9c4"/>
+              <stop offset="1" stop-color="#6e6e78"/>
+            </linearGradient>
+            <linearGradient id="silverInner" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#e9e9ee"/>
+              <stop offset="1" stop-color="#8c8c96"/>
+            </linearGradient>
+            <clipPath id="clipCrest"><path d="M48 3 89 20v34c0 26-19 41-41 51C27 95 7 80 7 54V20z"/></clipPath>
+            <g id="crest-shape">
+              <path d="M48 3 89 20v34c0 26-19 41-41 51C27 95 7 80 7 54V20z" fill="none" stroke="url(#silver)" stroke-width="2.4"/>
+              <path d="M48 12 81 26v28c0 21-15 33-33 41C33 87 15 75 15 54V26z" fill="none" stroke="url(#silver)" stroke-width="1" opacity=".55"/>
+              <path d="M58 40a20 20 0 1 0 0 30" fill="none" stroke="url(#silverInner)" stroke-width="5.5" stroke-linecap="round"/>
+              <path d="M44 46 60 55 44 64Z" fill="url(#silverInner)"/>
+            </g>
+          </defs>
+          <use href="#crest-shape"></use>
+          <g clip-path="url(#clipCrest)">
+            <rect class="shine" x="-40" y="0" width="30" height="108" fill="rgba(255,255,255,.5)" transform="skewX(-16)"/>
+          </g>
+        </svg>
+
+        <div class="wordmark">CONFRARIA</div>
+        <div class="tagline">Guilda de editores da missão</div>
+
+        <div class="divider"></div>
+
+        <div class="roles" role="group" aria-label="Tipo de acesso">
+          <button type="button" class="role" aria-pressed="true">Editor</button>
+          <button type="button" class="role" aria-pressed="false" disabled aria-disabled="true">Inspetor<span class="soon">em breve</span></button>
+          <button type="button" class="role" aria-pressed="false" disabled aria-disabled="true">Candidato<span class="soon">em breve</span></button>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="email">E-mail</label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+              <input id="email" name="email" type="email" placeholder="seu@email.com" autocomplete="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" required />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="senha">Senha</label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              <input id="senha" name="senha" type="password" class="pw-input" placeholder="sua senha" autocomplete="current-password" required />
+              <button type="button" class="pw-toggle" aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha">
+                <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.7 6.2A9.7 9.7 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.3 4.1M6.3 6.3A17.6 17.6 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 4.2-.9M3 3l18 18"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="row">
+            <label class="check">
+              <input type="checkbox" id="lembrar" name="lembrar" />
+              <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span>Manter conectado</span>
+            </label>
+            <a class="link" href="#">Esqueci a senha</a>
+          </div>
+
+          <p class="form-msg" role="alert" aria-live="polite"></p>
+          <button class="btn" type="submit">Entrar na Confraria</button>
+        </form>
+
+        <p class="alt">Ainda não é confrade? <a href="#">Solicitar acesso</a></p>
+
+        <div class="foot">Ordo · Ars · Missio</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // role selector (editors active; others locked for now)
+    document.querySelectorAll('.role:not([disabled])').forEach(r => {
+      r.addEventListener('click', () => {
+        document.querySelectorAll('.role').forEach(x => x.setAttribute('aria-pressed', 'false'));
+        r.setAttribute('aria-pressed', 'true');
+      });
+    });
+
+    // password reveal toggle
+    const pw = document.getElementById('senha');
+    const pwBtn = document.querySelector('.pw-toggle');
+    pwBtn.addEventListener('click', () => {
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      pwBtn.setAttribute('aria-pressed', String(show));
+      const lbl = show ? 'Ocultar senha' : 'Mostrar senha';
+      pwBtn.setAttribute('aria-label', lbl);
+      pwBtn.setAttribute('title', lbl);
+      pw.focus({ preventScroll: true });
+    });
+
+    // prototype submit with light validation
+    const form = document.getElementById('loginForm');
+    const email = document.getElementById('email');
+    const btn = form.querySelector('.btn');
+    const msg = form.querySelector('.form-msg');
+    const setMsg = t => { msg.textContent = t || ''; msg.classList.toggle('show', !!t); };
+    const flag = (el, on) => { el.classList.toggle('invalid', on); el.setAttribute('aria-invalid', String(on)); };
+    const clearInvalid = el => el.addEventListener('input', () => { flag(el, false); if (!email.classList.contains('invalid') && !pw.classList.contains('invalid')) setMsg(''); });
+    clearInvalid(email); clearInvalid(pw);
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      let bad = null;
+      const badEmail = !email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
+      const badPw = !pw.value;
+      flag(email, badEmail); flag(pw, badPw);
+      if (badEmail) bad = email; else if (badPw) bad = pw;
+      if (bad) {
+        setMsg(badEmail && badPw ? 'Preencha e-mail e senha.' : badEmail ? 'Digite um e-mail válido.' : 'Digite sua senha.');
+        bad.focus();
+        return;
+      }
+      setMsg('');
+      btn.disabled = true;
+      btn.textContent = 'Abrindo os portões…';
+      btn.style.opacity = '.85';
+      setTimeout(() => { btn.textContent = 'Bem-vindo, confrade'; }, 900);
+    });
+  </script>
+</body>
+</html>

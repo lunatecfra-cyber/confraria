@@ -1,0 +1,181 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { PAUTAS, PORTA_VOZ_ATUAL, ROTULO_STATUS } from "@/lib/pautas";
+import { getCandidato, iniciais } from "@/lib/candidatos";
+import { LocalProximidade } from "@/components/local-proximidade";
+
+export const metadata: Metadata = { title: "Meu Perfil — Confraria" };
+
+export default function PerfilPortaVozPage() {
+  const cand = getCandidato(PORTA_VOZ_ATUAL.nome);
+  const minhas = PAUTAS.filter((p) => p.portaVoz === PORTA_VOZ_ATUAL.nome);
+  const naFila = minhas.filter((p) => p.status === "disponivel").length;
+  const emProducao = minhas.filter((p) =>
+    ["reservada", "minha", "em_revisao", "reedicao"].includes(p.status)
+  ).length;
+  const aprovadas = minhas.filter((p) => p.status === "aprovada").length;
+
+  const historico = minhas.filter((p) => p.status === "aprovada" || p.status === "reedicao");
+
+  return (
+    <div className="mx-auto w-full max-w-5xl px-4 py-6 lg:px-8 lg:py-10">
+      {/* ---- cartão de identidade ---- */}
+      <section className="reveal overflow-hidden rounded-2xl border border-line bg-surface/60">
+        <div className="relative h-32 lg:h-44">
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(120% 160% at 15% 0%, rgba(244,206,31,0.22), transparent 55%), linear-gradient(120deg,#17140a,#0e0e12 60%,#0a0a0b)",
+            }}
+          />
+          <Image
+            src="/emblema.png"
+            alt=""
+            aria-hidden="true"
+            width={365}
+            height={365}
+            className="pointer-events-none absolute -right-4 top-1/2 w-40 -translate-y-1/2 opacity-[0.08] lg:w-56"
+          />
+          <div className="absolute inset-0 opacity-40 [background:repeating-linear-gradient(135deg,rgba(255,255,255,0.03)_0,rgba(255,255,255,0.03)_1px,transparent_1px,transparent_6px)]" />
+        </div>
+
+        <div className="px-5 pb-6 lg:px-8">
+          <div className="relative z-10 -mt-12 flex items-end justify-between gap-4 lg:-mt-14">
+            <span
+              className="grid h-24 w-24 place-items-center rounded-2xl font-[family-name:var(--font-display)] text-3xl font-semibold text-black/80 lg:h-28 lg:w-28 lg:text-4xl"
+              style={{
+                background: cand.tint,
+                boxShadow:
+                  "0 0 0 4px var(--color-ink), 0 0 0 5px rgba(244,206,31,0.55), 0 12px 34px rgba(0,0,0,0.6)",
+              }}
+            >
+              {iniciais(cand.nome)}
+            </span>
+            <Link href="/porta-voz/perfil/editar" className="btn-ghost mb-1 w-auto px-4 text-sm">
+              Editar perfil
+            </Link>
+          </div>
+
+          <h1 className="mt-4 font-[family-name:var(--font-display)] text-2xl font-semibold text-text lg:text-3xl">
+            {cand.nome}
+          </h1>
+          <p className="mt-1 text-gold-hi">{cand.cargo}</p>
+          <LocalProximidade
+            local={cand.local}
+            proximidade={cand.proximidade}
+            className="mt-1 text-sm text-muted-2"
+          />
+          {cand.desde && (
+            <p className="mt-1 text-sm text-muted-2">na guilda desde {cand.desde}</p>
+          )}
+          {cand.bio && (
+            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted">{cand.bio}</p>
+          )}
+
+          <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3">
+            <Stat valor={String(minhas.length)} rotulo="missões" />
+            <Stat valor={String(naFila)} rotulo="na fila" />
+            <Stat valor={String(emProducao)} rotulo="em produção" />
+            <Stat valor={String(aprovadas)} rotulo="aprovadas" />
+          </dl>
+        </div>
+      </section>
+
+      <div className="mt-6 flex flex-col gap-6">
+        <Card titulo="Missões criadas">
+          {minhas.length === 0 ? (
+            <p className="text-sm text-muted">Nenhuma missão criada ainda.</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {minhas.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-line bg-surface/40 p-4"
+                >
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-[family-name:var(--font-display)] text-base font-semibold text-text">
+                      {p.titulo}
+                    </h3>
+                    {p.reservadaPor && (
+                      <p className="mt-0.5 text-xs text-muted-2">editor: {p.reservadaPor}</p>
+                    )}
+                  </div>
+                  <span className="rounded-full border border-line bg-ink-2 px-3 py-1 text-xs text-muted">
+                    {ROTULO_STATUS[p.status]}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card titulo="Histórico" delay={0.05}>
+          {historico.length === 0 ? (
+            <p className="text-sm text-muted">Nenhuma missão concluída ainda.</p>
+          ) : (
+            <ol className="relative ml-1">
+              {historico.map((h, i) => {
+                const ok = h.status === "aprovada";
+                const ultimo = i === historico.length - 1;
+                return (
+                  <li key={h.id} className="relative flex gap-4 pb-5 last:pb-0">
+                    {!ultimo && (
+                      <span className="absolute left-[7px] top-4 h-full w-px bg-line" />
+                    )}
+                    <span
+                      className={`relative mt-1 h-3.5 w-3.5 flex-none rounded-full border-2 ${
+                        ok ? "border-ok bg-ok/30" : "border-gold bg-gold/30"
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-text">{h.titulo}</p>
+                      <p className="text-xs text-muted-2">
+                        {h.reservadaPor ?? "—"} ·{" "}
+                        <span className={ok ? "text-ok" : "text-gold"}>
+                          {ok ? "aprovada" : "reedição pedida"}
+                        </span>
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ valor, rotulo }: { valor: string; rotulo: string }) {
+  return (
+    <div>
+      <dd className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+        {valor}
+      </dd>
+      <dt className="text-xs uppercase tracking-[0.1em] text-muted-2">{rotulo}</dt>
+    </div>
+  );
+}
+
+function Card({
+  titulo,
+  delay = 0,
+  children,
+}: {
+  titulo: string;
+  delay?: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className="reveal rounded-2xl border border-line bg-surface/60 p-5 lg:p-6"
+      style={{ animationDelay: `${delay}s` }}
+    >
+      <h2 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-gold">{titulo}</h2>
+      {children}
+    </section>
+  );
+}

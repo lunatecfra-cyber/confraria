@@ -1,0 +1,296 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { AppHeader } from "@/components/app-header";
+import { EDITOR_ATUAL, ROTULO_FORMATO } from "@/lib/pautas";
+import { PERFIL_EDITOR, progressoNivel } from "@/lib/perfil";
+import { DIAS, DISPONIBILIDADE_PADRAO, PERIODOS, TRABALHOS } from "@/lib/agenda";
+import { MesaAgora } from "@/components/mesa-agora";
+
+export const metadata: Metadata = { title: "Meu Perfil — Confraria" };
+
+export default function PerfilPage() {
+  const p = PERFIL_EDITOR;
+  const nivel = progressoNivel(p.entregues);
+  const livres = DISPONIBILIDADE_PADRAO.flat().filter(Boolean).length;
+  const iniciais = p.nome
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <>
+      <AppHeader editor={EDITOR_ATUAL} />
+      <main className="flex-1">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6 lg:px-8 lg:py-10">
+          {/* ---- cartão de identidade ---- */}
+          <section className="reveal overflow-hidden rounded-2xl border border-line bg-surface/60">
+            {/* capa */}
+            <div className="relative h-32 lg:h-44">
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(120% 160% at 15% 0%, rgba(244,206,31,0.22), transparent 55%), linear-gradient(120deg,#17140a,#0e0e12 60%,#0a0a0b)",
+                }}
+              />
+              <Image
+                src="/emblema.png"
+                alt=""
+                aria-hidden="true"
+                width={365}
+                height={365}
+                className="pointer-events-none absolute -right-4 top-1/2 w-40 -translate-y-1/2 opacity-[0.08] lg:w-56"
+              />
+              <div className="absolute inset-0 opacity-40 [background:repeating-linear-gradient(135deg,rgba(255,255,255,0.03)_0,rgba(255,255,255,0.03)_1px,transparent_1px,transparent_6px)]" />
+            </div>
+
+            {/* cabeçalho */}
+            <div className="px-5 pb-6 lg:px-8">
+              <div className="relative z-10 -mt-12 flex items-end justify-between gap-4 lg:-mt-14">
+                <div
+                  className="grid h-24 w-24 place-items-center rounded-2xl bg-ink font-[family-name:var(--font-display)] text-3xl font-semibold text-gold lg:h-28 lg:w-28 lg:text-4xl"
+                  style={{
+                    boxShadow:
+                      "0 0 0 4px var(--color-ink), 0 0 0 5px rgba(244,206,31,0.55), 0 12px 34px rgba(0,0,0,0.6)",
+                  }}
+                >
+                  {iniciais}
+                </div>
+                <Link href="/perfil/editar" className="btn-ghost mb-1 w-auto px-4 text-sm">
+                  Editar perfil
+                </Link>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text lg:text-3xl">
+                  {p.nome}
+                </h1>
+                <span className="rounded-full border border-gold-lo/60 bg-gold/10 px-3 py-0.5 text-xs font-medium text-gold-hi">
+                  {nivel.atual.nome}
+                </span>
+              </div>
+              <p className="mt-1 text-muted">{p.headline}</p>
+              <p className="mt-1 text-sm text-muted-2">
+                @{p.apelido} · {p.local} · na guilda desde {p.desde}
+              </p>
+
+              {/* stats */}
+              <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3">
+                <Stat valor={String(p.entregues)} rotulo="entregues" />
+                <Stat valor={p.nota.toFixed(1).replace(".", ",")} rotulo="nota" estrela />
+                <Stat valor={String(p.reputacao)} rotulo="reputação" />
+              </dl>
+            </div>
+          </section>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1.7fr_1fr]">
+            {/* ---- coluna principal ---- */}
+            <div className="flex flex-col gap-6">
+              <Card titulo="Sobre" delay={0.05}>
+                <p className="text-[15px] leading-relaxed text-muted">{p.bio}</p>
+              </Card>
+
+              <Card titulo="Portfólio" delay={0.1}>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {p.portfolio.map((v) => (
+                    <figure key={v.id} className="group">
+                      <div
+                        className="relative flex aspect-[16/10] items-center justify-center overflow-hidden rounded-xl border border-line"
+                        style={{ background: v.tint }}
+                      >
+                        <span className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/5" />
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="relative h-8 w-8 text-white/90 drop-shadow"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        <span className="absolute left-2 top-2 rounded bg-black/45 px-1.5 py-0.5 text-[10px] font-medium text-white/90">
+                          {ROTULO_FORMATO[v.formato]}
+                        </span>
+                      </div>
+                      <figcaption className="mt-2">
+                        <p className="truncate text-sm font-medium text-text">{v.titulo}</p>
+                        <p className="text-xs text-muted-2">{v.portaVoz}</p>
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </Card>
+
+              <Card titulo="Histórico" delay={0.15}>
+                <ol className="relative ml-1">
+                  {p.historico.map((h, i) => {
+                    const ok = h.resultado === "aprovada";
+                    const ultimo = i === p.historico.length - 1;
+                    return (
+                      <li key={h.id} className="relative flex gap-4 pb-5 last:pb-0">
+                        {!ultimo && (
+                          <span className="absolute left-[7px] top-4 h-full w-px bg-line" />
+                        )}
+                        <span
+                          className={`relative mt-1 h-3.5 w-3.5 flex-none rounded-full border-2 ${
+                            ok
+                              ? "border-ok bg-ok/30"
+                              : "border-gold bg-gold/30"
+                          }`}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-text">{h.titulo}</p>
+                          <p className="text-xs text-muted-2">
+                            {h.portaVoz} · {h.data} ·{" "}
+                            <span className={ok ? "text-ok" : "text-gold"}>
+                              {ok ? "aprovada" : "reedição"}
+                            </span>
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </Card>
+            </div>
+
+            {/* ---- sidebar ---- */}
+            <aside className="flex flex-col gap-6">
+              <Card titulo="Nível" delay={0.1}>
+                <p className="font-[family-name:var(--font-display)] text-2xl font-semibold text-gold-hi">
+                  {nivel.atual.nome}
+                </p>
+                {nivel.proximo ? (
+                  <>
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-line">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-gold-lo to-gold-hi"
+                        style={{ width: `${nivel.pct}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-xs text-muted">
+                      Faltam <b className="text-text">{nivel.faltam}</b> entregas pra{" "}
+                      <b className="text-gold-hi">{nivel.proximo.nome}</b>
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-3 text-xs text-muted">Nível máximo alcançado. 🐅</p>
+                )}
+              </Card>
+
+              <Card titulo="Conquistas" delay={0.15}>
+                <ul className="flex flex-col gap-3">
+                  {p.conquistas.map((c) => (
+                    <li key={c.nome} className="flex items-center gap-3">
+                      <span className="grid h-9 w-9 place-items-center rounded-lg border border-line bg-ink-2 text-lg">
+                        {c.icone}
+                      </span>
+                      <span className="text-sm text-muted">{c.nome}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+
+              <Card titulo="Disponibilidade" delay={0.2}>
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-sm text-text">
+                    <b className="text-gold-hi">{livres}</b> blocos livres
+                  </span>
+                  <Link href="/agenda" className="text-xs text-muted transition-colors hover:text-gold-hi">
+                    Editar →
+                  </Link>
+                </div>
+                <MiniGrade />
+              </Card>
+
+              {TRABALHOS.length > 0 && (
+                <Card titulo="Na mesa agora" delay={0.25}>
+                  <MesaAgora variant="lista" />
+                </Card>
+              )}
+            </aside>
+          </div>
+        </div>
+      </main>
+    </>
+  );
+}
+
+function MiniGrade() {
+  return (
+    <div className="grid grid-cols-[18px_repeat(7,1fr)] gap-1">
+      <span />
+      {DIAS.map((d) => (
+        <span key={d} className="text-center text-[10px] text-muted-2">
+          {d[0]}
+        </span>
+      ))}
+      {PERIODOS.map((periodo, pi) => (
+        <div key={periodo} className="contents">
+          <span className="flex items-center text-[10px] text-muted-2">
+            {periodo[0]}
+          </span>
+          {DIAS.map((d, di) => (
+            <span
+              key={d}
+              title={`${periodo} de ${d}: ${DISPONIBILIDADE_PADRAO[pi][di] ? "livre" : "ocupado"}`}
+              className={`h-5 rounded-sm ${
+                DISPONIBILIDADE_PADRAO[pi][di]
+                  ? "bg-gradient-to-b from-gold to-gold-lo"
+                  : "border border-line bg-ink-2"
+              }`}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Stat({
+  valor,
+  rotulo,
+  estrela,
+}: {
+  valor: string;
+  rotulo: string;
+  estrela?: boolean;
+}) {
+  return (
+    <div>
+      <dd className="flex items-center gap-1 font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+        {estrela && (
+          <svg viewBox="0 0 24 24" className="h-4 w-4 text-gold" fill="currentColor" aria-hidden="true">
+            <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z" />
+          </svg>
+        )}
+        {valor}
+      </dd>
+      <dt className="text-xs uppercase tracking-[0.1em] text-muted-2">{rotulo}</dt>
+    </div>
+  );
+}
+
+function Card({
+  titulo,
+  delay = 0,
+  children,
+}: {
+  titulo: string;
+  delay?: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className="reveal rounded-2xl border border-line bg-surface/60 p-5 lg:p-6"
+      style={{ animationDelay: `${delay}s` }}
+    >
+      <h2 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-gold">
+        {titulo}
+      </h2>
+      {children}
+    </section>
+  );
+}
