@@ -55,6 +55,7 @@ export type PerfilEditor = {
   entregues: number;
   nota: number;
   reputacao: number;
+  streak: number; // dias seguidos ativo (entregou ou interagiu)
   portfolio: ItemPortfolio[];
   historico: ItemHistorico[];
   conquistas: { icone: string; nome: string }[];
@@ -70,6 +71,7 @@ export const PERFIL_EDITOR: PerfilEditor = {
   entregues: 12,
   nota: 4.8,
   reputacao: 340,
+  streak: 5,
   portfolio: [
     { id: "v1", titulo: "Resposta sobre segurança", formato: "short", portaVoz: "Busnelo", tint: "linear-gradient(135deg,#f4ce1f,#a9840e)" },
     { id: "v2", titulo: "Clipe da caminhada", formato: "short", portaVoz: "Busnelo", tint: "linear-gradient(135deg,#3a3a42,#12121a)" },
@@ -90,3 +92,58 @@ export const PERFIL_EDITOR: PerfilEditor = {
     { icone: "🔥", nome: "Sequência de 5 dias" },
   ],
 };
+
+export type Desafio = {
+  id: string;
+  titulo: string;
+  descricao: string;
+  xp: number;
+  dificuldade: 1 | 2 | 3;
+  cumprido: boolean;
+};
+
+// desafios de engajamento do dia — NÃO confundir com "Missão" (que é a pauta/trabalho em si)
+export const DESAFIOS_HOJE: Desafio[] = [
+  {
+    id: "d1",
+    titulo: "Entregue uma missão hoje",
+    descricao: "Termine e entregue qualquer pauta que você já reservou.",
+    xp: 40,
+    dificuldade: 2,
+    cumprido: false,
+  },
+  {
+    id: "d2",
+    titulo: "Mantenha a sequência",
+    descricao: "Acesse a Confraria hoje pra não perder o streak.",
+    xp: 10,
+    dificuldade: 1,
+    cumprido: true,
+  },
+  {
+    id: "d3",
+    titulo: "Suba no ranking",
+    descricao: "Entregue com qualidade — cada aprovação soma XP.",
+    xp: 25,
+    dificuldade: 2,
+    cumprido: false,
+  },
+];
+
+export type EditorRanking = {
+  apelido: string;
+  nivel: Nivel;
+  reputacao: number;
+  entregues: number;
+  streak: number;
+};
+
+// dados fake pro ranking — jr.eneias é o EDITOR_ATUAL (mesmos números de PERFIL_EDITOR)
+export const EDITORES: EditorRanking[] = [
+  { apelido: "duda.corte", nivel: "Veterano", reputacao: 810, entregues: 34, streak: 12 },
+  { apelido: "gui.frames", nivel: "Veterano", reputacao: 705, entregues: 31, streak: 3 },
+  { apelido: "jr.eneias", nivel: "Confrade", reputacao: 340, entregues: 12, streak: 5 },
+  { apelido: "bia.cortez", nivel: "Confrade", reputacao: 290, entregues: 11, streak: 8 },
+  { apelido: "theo.edits", nivel: "Confrade", reputacao: 205, entregues: 9, streak: 1 },
+  { apelido: "manu.rc", nivel: "Aspirante", reputacao: 60, entregues: 3, streak: 0 },
+];

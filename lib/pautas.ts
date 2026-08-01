@@ -3,7 +3,6 @@ export type StatusPauta =
   | "minha"
   | "reservada"
   | "em_revisao"
-  | "entregue"
   | "reedicao"
   | "aprovada";
 
@@ -119,7 +118,6 @@ export const ROTULO_STATUS: Record<StatusPauta, string> = {
   minha: "Sua missão",
   reservada: "Reservada",
   em_revisao: "Em revisão",
-  entregue: "Entregue",
   reedicao: "Reedição pedida",
   aprovada: "Aprovada",
 };

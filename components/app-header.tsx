@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
-import type { Editor } from "@/lib/pautas";
+import { EDITOR_ATUAL } from "@/lib/pautas";
 
-export function AppHeader({ editor }: { editor: Editor }) {
+export function AppHeader() {
+  const editor = EDITOR_ATUAL;
   return (
     <header className="border-b border-line-soft">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
@@ -20,6 +21,9 @@ export function AppHeader({ editor }: { editor: Editor }) {
             </Link>
             <Link href="/agenda" className="text-muted transition-colors hover:text-text">
               Agenda
+            </Link>
+            <Link href="/ranking" className="text-muted transition-colors hover:text-text">
+              Ranking
             </Link>
           </nav>
         </div>

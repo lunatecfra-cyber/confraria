@@ -4,29 +4,37 @@ import {
   PAUTAS,
   PORTA_VOZ_ATUAL,
   ROTULO_FORMATO,
-  ROTULO_STATUS,
-  type StatusPauta,
+  type Pauta,
 } from "@/lib/pautas";
 
 export const metadata: Metadata = { title: "Minhas Missões — Confraria" };
 
-function corSelo(status: StatusPauta) {
+// mensagem amigável de status, do ponto de vista de quem tá esperando o vídeo
+function mensagemStatus(status: Pauta["status"]): { texto: string; cor: string } {
   switch (status) {
-    case "disponivel":
-      return "border-line bg-surface-2 text-muted";
     case "reservada":
-      return "border-gold-lo/60 bg-gold/10 text-gold-hi";
+    case "minha":
     case "em_revisao":
-      return "border-silver-lo/50 bg-surface-2 text-silver";
-    case "entregue":
-      return "border-ok/40 bg-ok/10 text-ok";
+      return { texto: "🎬 Seu vídeo começou a ser feito", cor: "text-gold-hi" };
+    case "reedicao":
+      return { texto: "💬 O editor tem uma observação", cor: "text-silver-hi" };
+    case "aprovada":
+      return { texto: "✅ Seu vídeo está pronto!", cor: "text-ok" };
     default:
-      return "border-line bg-surface text-muted-2";
+      return { texto: "", cor: "" };
   }
 }
 
 export default function PortaVozHome() {
   const minhas = PAUTAS.filter((p) => p.portaVoz === PORTA_VOZ_ATUAL.nome);
+
+  // fila compartilhada: todas as pautas disponíveis (de todo mundo), ordenadas por criação
+  const filaGeral = PAUTAS.filter((p) => p.status === "disponivel").sort(
+    (a, b) => a.criadaEm.localeCompare(b.criadaEm)
+  );
+
+  const naFila = minhas.filter((p) => p.status === "disponivel");
+  const emAndamento = minhas.filter((p) => p.status !== "disponivel");
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-8 lg:px-8 lg:py-12">
@@ -55,33 +63,81 @@ export default function PortaVozHome() {
           </Link>
         </div>
       ) : (
-        <ul className="mt-8 flex flex-col gap-3">
-          {minhas.map((p) => (
-            <li
-              key={p.id}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-line bg-surface/60 p-4 lg:p-5"
-            >
-              <div className="min-w-0 flex-1">
-                <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-text">
-                  {p.titulo}
-                </h2>
-                <p className="mt-0.5 text-xs text-muted">
-                  {ROTULO_FORMATO[p.formato]}
-                  {p.reservadaPor && p.status === "reservada" && (
-                    <> · editor: {p.reservadaPor}</>
-                  )}
-                </p>
-              </div>
-              <span
-                className={`rounded-full border px-3 py-1 text-xs font-medium ${corSelo(
-                  p.status
-                )}`}
-              >
-                {ROTULO_STATUS[p.status]}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <div className="mt-8 flex flex-col gap-8">
+          {naFila.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-gold">
+                Na fila
+              </h2>
+              <ul className="flex flex-col gap-3">
+                {naFila.map((p) => {
+                  const posicao = filaGeral.findIndex((f) => f.id === p.id) + 1;
+                  const total = filaGeral.length;
+                  const pct = total > 1 ? Math.round(((total - posicao) / (total - 1)) * 100) : 100;
+                  return (
+                    <li
+                      key={p.id}
+                      className="rounded-xl border border-line bg-surface/60 p-4 lg:p-5"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h3 className="font-[family-name:var(--font-display)] text-lg font-semibold text-text">
+                          {p.titulo}
+                        </h3>
+                        <span className="text-xs text-muted">
+                          {ROTULO_FORMATO[p.formato]}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-2">
+                        Posição <b className="text-text">{posicao}</b> de {total} na fila dos editores
+                      </p>
+                      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-gold-lo to-gold-hi transition-all"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+
+          {emAndamento.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-gold">
+                Em andamento e concluídas
+              </h2>
+              <ul className="flex flex-col gap-3">
+                {emAndamento.map((p) => {
+                  const msg = mensagemStatus(p.status);
+                  return (
+                    <li
+                      key={p.id}
+                      className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-line bg-surface/60 p-4 lg:p-5"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-[family-name:var(--font-display)] text-lg font-semibold text-text">
+                          {p.titulo}
+                        </h3>
+                        <p className="mt-0.5 text-xs text-muted">
+                          {ROTULO_FORMATO[p.formato]}
+                          {p.reservadaPor && <> · editor: {p.reservadaPor}</>}
+                        </p>
+                        {p.status === "reedicao" && p.notasInspetor && (
+                          <p className="mt-1 text-xs text-muted-2">"{p.notasInspetor}"</p>
+                        )}
+                      </div>
+                      {msg.texto && (
+                        <span className={`text-sm font-medium ${msg.cor}`}>{msg.texto}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+        </div>
       )}
     </div>
   );

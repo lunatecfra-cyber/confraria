@@ -1,9 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { PORTA_VOZ_ATUAL } from "@/lib/pautas";
+import { temPerfilCandidatoCompleto } from "@/lib/candidatos";
 
 export function LoginForm() {
+  const router = useRouter();
+  const [papel, setPapel] = useState<"voz" | "editor">("voz");
   const [apelido, setApelido] = useState("");
   const [senha, setSenha] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -25,15 +30,53 @@ export function LoginForm() {
     setErro("");
     setEnviando(true);
     // TODO: ligar no Supabase quando as chaves estiverem configuradas
+    if (papel === "editor") {
+      router.push("/editor");
+      return;
+    }
+    router.push(
+      temPerfilCandidatoCompleto(PORTA_VOZ_ATUAL.nome) ? "/porta-voz" : "/porta-voz/criar-perfil"
+    );
   }
 
   return (
     <div className="w-full max-w-sm">
+      <div className="mb-6 flex items-center gap-1 rounded-xl border border-line bg-surface-2 p-1">
+        <button
+          type="button"
+          onClick={() => setPapel("voz")}
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            papel === "voz" ? "bg-gold/10 text-gold-hi" : "text-muted hover:text-text"
+          }`}
+        >
+          Sou porta-voz
+        </button>
+        <button
+          type="button"
+          onClick={() => setPapel("editor")}
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            papel === "editor" ? "bg-gold/10 text-gold-hi" : "text-muted hover:text-text"
+          }`}
+        >
+          Sou editor
+        </button>
+      </div>
+
       <button
         type="button"
         className="btn-ghost flex items-center justify-center gap-3"
         onClick={() => {
-          /* TODO: signInWithOAuth('google') no Supabase */
+          // TODO: signInWithOAuth('google') no Supabase — por ora simula a vinda
+          // do Google (nome+foto já viriam prontos) e pula direto pro que falta.
+          if (papel === "editor") {
+            router.push("/editor");
+            return;
+          }
+          router.push(
+            temPerfilCandidatoCompleto(PORTA_VOZ_ATUAL.nome)
+              ? "/porta-voz"
+              : "/porta-voz/criar-perfil?via=google"
+          );
         }}
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">

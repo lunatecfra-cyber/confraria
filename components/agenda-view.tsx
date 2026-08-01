@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { DIAS, DISPONIBILIDADE_PADRAO, PERIODOS, TRABALHOS } from "@/lib/agenda";
 import { MesaAgora } from "@/components/mesa-agora";
+import { CelulaDisponibilidade } from "@/components/disponibilidade-cell";
 
 const CHAVE_STORAGE = "confraria:disponibilidade";
 
@@ -93,17 +94,11 @@ export function AgendaView() {
                 {DIAS.map((d, j) => {
                   const livre = disp[p][j];
                   return (
-                    <button
+                    <CelulaDisponibilidade
                       key={d}
-                      type="button"
+                      livre={livre}
                       onClick={() => toggle(p, j)}
-                      aria-pressed={livre}
-                      aria-label={`${periodo} de ${d}: ${livre ? "livre" : "ocupado"}`}
-                      className={`h-9 rounded-md border transition-colors ${
-                        livre
-                          ? "border-gold bg-gradient-to-b from-gold to-gold-lo"
-                          : "border-line bg-ink-2 hover:border-silver-lo"
-                      }`}
+                      label={`${periodo} de ${d}: ${livre ? "livre" : "ocupado"}`}
                     />
                   );
                 })}

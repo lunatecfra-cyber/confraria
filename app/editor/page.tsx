@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import { AppHeader } from "@/components/app-header";
+import { DesafiosDia } from "@/components/desafios-dia";
 import { FilaPautas } from "@/components/fila-pautas";
-import { EDITOR_ATUAL } from "@/lib/pautas";
 
 export const metadata: Metadata = { title: "Fila — Confraria" };
 
 export default function EditorPage() {
   return (
     <>
-      <AppHeader editor={EDITOR_ATUAL} />
+      <AppHeader />
       <main className="flex-1">
+        <div className="mx-auto w-full max-w-6xl px-5 pt-8 lg:px-8 lg:pt-12">
+          <DesafiosDia />
+        </div>
         <FilaPautas />
       </main>
     </>

@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
-import { EDITOR_ATUAL, ROTULO_FORMATO } from "@/lib/pautas";
+import { ROTULO_FORMATO } from "@/lib/pautas";
 import { PERFIL_EDITOR, progressoNivel } from "@/lib/perfil";
 import { DIAS, DISPONIBILIDADE_PADRAO, PERIODOS, TRABALHOS } from "@/lib/agenda";
 import { MesaAgora } from "@/components/mesa-agora";
+import { Stat } from "@/components/stat";
+import { Card } from "@/components/card";
+import { CelulaDisponibilidade } from "@/components/disponibilidade-cell";
+import { iniciais } from "@/lib/candidatos";
 
 export const metadata: Metadata = { title: "Meu Perfil — Confraria" };
 
@@ -13,16 +17,10 @@ export default function PerfilPage() {
   const p = PERFIL_EDITOR;
   const nivel = progressoNivel(p.entregues);
   const livres = DISPONIBILIDADE_PADRAO.flat().filter(Boolean).length;
-  const iniciais = p.nome
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   return (
     <>
-      <AppHeader editor={EDITOR_ATUAL} />
+      <AppHeader />
       <main className="flex-1">
         <div className="mx-auto w-full max-w-5xl px-4 py-6 lg:px-8 lg:py-10">
           {/* ---- cartão de identidade ---- */}
@@ -57,7 +55,7 @@ export default function PerfilPage() {
                       "0 0 0 4px var(--color-ink), 0 0 0 5px rgba(244,206,31,0.55), 0 12px 34px rgba(0,0,0,0.6)",
                   }}
                 >
-                  {iniciais}
+                  {iniciais(p.nome)}
                 </div>
                 <Link href="/perfil/editar" className="btn-ghost mb-1 w-auto px-4 text-sm">
                   Editar perfil
@@ -81,7 +79,8 @@ export default function PerfilPage() {
               <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3">
                 <Stat valor={String(p.entregues)} rotulo="entregues" />
                 <Stat valor={p.nota.toFixed(1).replace(".", ",")} rotulo="nota" estrela />
-                <Stat valor={String(p.reputacao)} rotulo="reputação" />
+                <Stat valor={String(p.reputacao)} rotulo="XP" />
+                <Stat valor={String(p.streak)} rotulo="sequência" fogo />
               </dl>
             </div>
           </section>
@@ -233,64 +232,15 @@ function MiniGrade() {
             {periodo[0]}
           </span>
           {DIAS.map((d, di) => (
-            <span
+            <CelulaDisponibilidade
               key={d}
-              title={`${periodo} de ${d}: ${DISPONIBILIDADE_PADRAO[pi][di] ? "livre" : "ocupado"}`}
-              className={`h-5 rounded-sm ${
-                DISPONIBILIDADE_PADRAO[pi][di]
-                  ? "bg-gradient-to-b from-gold to-gold-lo"
-                  : "border border-line bg-ink-2"
-              }`}
+              size="mini"
+              livre={DISPONIBILIDADE_PADRAO[pi][di]}
+              label={`${periodo} de ${d}: ${DISPONIBILIDADE_PADRAO[pi][di] ? "livre" : "ocupado"}`}
             />
           ))}
         </div>
       ))}
     </div>
-  );
-}
-
-function Stat({
-  valor,
-  rotulo,
-  estrela,
-}: {
-  valor: string;
-  rotulo: string;
-  estrela?: boolean;
-}) {
-  return (
-    <div>
-      <dd className="flex items-center gap-1 font-[family-name:var(--font-display)] text-xl font-semibold text-text">
-        {estrela && (
-          <svg viewBox="0 0 24 24" className="h-4 w-4 text-gold" fill="currentColor" aria-hidden="true">
-            <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z" />
-          </svg>
-        )}
-        {valor}
-      </dd>
-      <dt className="text-xs uppercase tracking-[0.1em] text-muted-2">{rotulo}</dt>
-    </div>
-  );
-}
-
-function Card({
-  titulo,
-  delay = 0,
-  children,
-}: {
-  titulo: string;
-  delay?: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <section
-      className="reveal rounded-2xl border border-line bg-surface/60 p-5 lg:p-6"
-      style={{ animationDelay: `${delay}s` }}
-    >
-      <h2 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-gold">
-        {titulo}
-      </h2>
-      {children}
-    </section>
   );
 }

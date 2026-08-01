@@ -3,9 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
-import { EDITOR_ATUAL, PAUTAS, ROTULO_FORMATO, ROTULO_STATUS } from "@/lib/pautas";
-import { getCandidatoPorSlug, iniciais } from "@/lib/candidatos";
-import { LocalProximidade } from "@/components/local-proximidade";
+import { PAUTAS, ROTULO_FORMATO, ROTULO_STATUS } from "@/lib/pautas";
+import { getCandidatoPorSlug } from "@/lib/candidatos";
+import { Stat } from "@/components/stat";
+import { AvatarCandidato } from "@/components/avatar-candidato";
+import { DadosCandidato } from "@/components/dados-candidato";
+import { NomeCandidato } from "@/components/nome-candidato";
 
 export async function generateMetadata({
   params,
@@ -34,7 +37,7 @@ export default async function CandidatoPage({
 
   return (
     <>
-      <AppHeader editor={EDITOR_ATUAL} />
+      <AppHeader />
       <main className="flex-1">
         <div className="mx-auto w-full max-w-4xl px-4 py-6 lg:px-8 lg:py-10">
           <Link
@@ -65,36 +68,18 @@ export default async function CandidatoPage({
 
             <div className="px-5 pb-6 lg:px-8">
               <div className="relative z-10 -mt-12 flex items-end gap-4">
-                <span
-                  className="grid h-24 w-24 flex-none place-items-center rounded-2xl font-[family-name:var(--font-display)] text-3xl font-semibold text-black/80"
-                  style={{
-                    background: cand.tint,
-                    boxShadow:
-                      "0 0 0 4px var(--color-ink), 0 12px 34px rgba(0,0,0,0.6)",
-                  }}
-                >
-                  {iniciais(cand.nome)}
-                </span>
+                <AvatarCandidato candidato={cand} className="h-24 w-24 text-3xl" />
               </div>
 
-              <h1 className="mt-4 font-[family-name:var(--font-display)] text-2xl font-semibold text-text lg:text-3xl">
-                {cand.nome}
-              </h1>
-              <p className="mt-1 text-gold-hi">{cand.cargo}</p>
-              <LocalProximidade
-                local={cand.local}
-                proximidade={cand.proximidade}
-                className="mt-1 text-sm text-muted-2"
+              <NomeCandidato
+                candidato={cand}
+                className="mt-4 font-[family-name:var(--font-display)] text-2xl font-semibold text-text lg:text-3xl"
               />
+              <DadosCandidato candidato={cand} />
               <p className="mt-1 text-[11px] text-muted-2">
                 <span className="text-gold-hi">●</span> perto de você ·{" "}
                 <span className="text-[#5a5a64]">●</span> longe
               </p>
-              {cand.bio && (
-                <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted">
-                  {cand.bio}
-                </p>
-              )}
 
               <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3">
                 <Stat valor={String(pautas.length)} rotulo="missões" />
@@ -136,16 +121,5 @@ export default async function CandidatoPage({
         </div>
       </main>
     </>
-  );
-}
-
-function Stat({ valor, rotulo }: { valor: string; rotulo: string }) {
-  return (
-    <div>
-      <dd className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
-        {valor}
-      </dd>
-      <dt className="text-xs uppercase tracking-[0.1em] text-muted-2">{rotulo}</dt>
-    </div>
   );
 }

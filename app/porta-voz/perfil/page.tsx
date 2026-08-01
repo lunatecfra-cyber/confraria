@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { PAUTAS, PORTA_VOZ_ATUAL, ROTULO_STATUS } from "@/lib/pautas";
-import { getCandidato, iniciais } from "@/lib/candidatos";
-import { LocalProximidade } from "@/components/local-proximidade";
+import { getCandidato } from "@/lib/candidatos";
+import { Stat } from "@/components/stat";
+import { Card } from "@/components/card";
+import { AvatarCandidato } from "@/components/avatar-candidato";
+import { DadosCandidato } from "@/components/dados-candidato";
+import { NomeCandidato } from "@/components/nome-candidato";
 
 export const metadata: Metadata = { title: "Meu Perfil — Confraria" };
 
@@ -43,35 +47,19 @@ export default function PerfilPortaVozPage() {
 
         <div className="px-5 pb-6 lg:px-8">
           <div className="relative z-10 -mt-12 flex items-end justify-between gap-4 lg:-mt-14">
-            <span
-              className="grid h-24 w-24 place-items-center rounded-2xl font-[family-name:var(--font-display)] text-3xl font-semibold text-black/80 lg:h-28 lg:w-28 lg:text-4xl"
-              style={{
-                background: cand.tint,
-                boxShadow:
-                  "0 0 0 4px var(--color-ink), 0 0 0 5px rgba(244,206,31,0.55), 0 12px 34px rgba(0,0,0,0.6)",
-              }}
-            >
-              {iniciais(cand.nome)}
-            </span>
-            <Link href="/porta-voz/perfil/editar" className="btn-ghost mb-1 w-auto px-4 text-sm">
+            <AvatarCandidato candidato={cand} className="h-24 w-24 text-3xl lg:h-28 lg:w-28 lg:text-4xl" />
+            <Link href="/porta-voz/criar-perfil" className="btn-ghost mb-1 w-auto px-4 text-sm">
               Editar perfil
             </Link>
           </div>
 
-          <h1 className="mt-4 font-[family-name:var(--font-display)] text-2xl font-semibold text-text lg:text-3xl">
-            {cand.nome}
-          </h1>
-          <p className="mt-1 text-gold-hi">{cand.cargo}</p>
-          <LocalProximidade
-            local={cand.local}
-            proximidade={cand.proximidade}
-            className="mt-1 text-sm text-muted-2"
+          <NomeCandidato
+            candidato={cand}
+            className="mt-4 font-[family-name:var(--font-display)] text-2xl font-semibold text-text lg:text-3xl"
           />
+          <DadosCandidato candidato={cand} />
           {cand.desde && (
             <p className="mt-1 text-sm text-muted-2">na guilda desde {cand.desde}</p>
-          )}
-          {cand.bio && (
-            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted">{cand.bio}</p>
           )}
 
           <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3">
@@ -146,36 +134,5 @@ export default function PerfilPortaVozPage() {
         </Card>
       </div>
     </div>
-  );
-}
-
-function Stat({ valor, rotulo }: { valor: string; rotulo: string }) {
-  return (
-    <div>
-      <dd className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
-        {valor}
-      </dd>
-      <dt className="text-xs uppercase tracking-[0.1em] text-muted-2">{rotulo}</dt>
-    </div>
-  );
-}
-
-function Card({
-  titulo,
-  delay = 0,
-  children,
-}: {
-  titulo: string;
-  delay?: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <section
-      className="reveal rounded-2xl border border-line bg-surface/60 p-5 lg:p-6"
-      style={{ animationDelay: `${delay}s` }}
-    >
-      <h2 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-gold">{titulo}</h2>
-      {children}
-    </section>
   );
 }
