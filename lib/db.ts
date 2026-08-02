@@ -23,15 +23,20 @@ db.exec(`
     apelido TEXT NOT NULL UNIQUE COLLATE NOCASE,
     nome TEXT NOT NULL,
     email TEXT NOT NULL COLLATE NOCASE,
-    senha_hash TEXT NOT NULL,
+    senha_hash TEXT,
+    google_id TEXT,
     papel TEXT NOT NULL CHECK (papel IN ('voz','editor')),
     criado_em TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
 
-// migration pra bancos criados antes do campo email existir
+// migrations pra bancos criados antes desses campos existirem
 const colunas = db.prepare("PRAGMA table_info(users)").all() as { name: string }[];
 if (!colunas.some((c) => c.name === "email")) {
   db.exec(`ALTER TABLE users ADD COLUMN email TEXT COLLATE NOCASE;`);
 }
+if (!colunas.some((c) => c.name === "google_id")) {
+  db.exec(`ALTER TABLE users ADD COLUMN google_id TEXT;`);
+}
 db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);`);
+db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);`);

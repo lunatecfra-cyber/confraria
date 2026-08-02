@@ -50,3 +50,26 @@ export async function lerSessao(): Promise<SessaoUsuario | null> {
   if (!token) return null;
   return verificarTokenSessao(token);
 }
+
+// estado assinado de curta duração — usado pelo fluxo OAuth do Google como
+// "state" (protege contra CSRF) carregando o papel escolhido antes do
+// redirecionamento, sem precisar guardar nada no servidor
+export async function criarEstadoAssinado(dados: { papel: Papel }) {
+  return new SignJWT({ ...dados })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("10m")
+    .sign(chave());
+}
+
+export async function verificarEstadoAssinado(token: string): Promise<{ papel: Papel } | null> {
+  try {
+    const { payload } = await jwtVerify(token, chave());
+    if (payload.papel === "voz" || payload.papel === "editor") {
+      return { papel: payload.papel };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}

@@ -10,7 +10,7 @@ export type ContaUsuario = {
   papel: Papel;
 };
 
-type LinhaUsuario = ContaUsuario & { senha_hash: string };
+type LinhaUsuario = ContaUsuario & { senha_hash: string | null };
 
 const RE_APELIDO = /^[a-z0-9._]{3,24}$/i;
 const RE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -59,7 +59,7 @@ export function autenticar(
     .prepare("SELECT id, apelido, nome, email, papel, senha_hash FROM users WHERE apelido = ?")
     .get(apelido.trim()) as LinhaUsuario | undefined;
 
-  if (!linha || !bcrypt.compareSync(senha, linha.senha_hash)) {
+  if (!linha || !linha.senha_hash || !bcrypt.compareSync(senha, linha.senha_hash)) {
     return { ok: false, erro: "Apelido ou senha incorretos." };
   }
 
@@ -67,4 +67,49 @@ export function autenticar(
     ok: true,
     conta: { id: linha.id, apelido: linha.apelido, nome: linha.nome, email: linha.email, papel: linha.papel },
   };
+}
+
+export function autenticarOuCriarContaGoogle(dados: {
+  googleId: string;
+  email: string;
+  nome: string;
+  papel: Papel;
+}): { ok: true; conta: ContaUsuario; novo: boolean } | { ok: false; erro: string } {
+  const porGoogleId = db
+    .prepare("SELECT id, apelido, nome, email, papel FROM users WHERE google_id = ?")
+    .get(dados.googleId) as ContaUsuario | undefined;
+  if (porGoogleId) return { ok: true, conta: porGoogleId, novo: false };
+
+  const porEmail = db.prepare("SELECT id FROM users WHERE email = ?").get(dados.email);
+  if (porEmail) {
+    return { ok: false, erro: "Esse e-mail já tem conta na Confraria — entra com apelido e senha." };
+  }
+
+  const apelido = gerarApelidoUnico(dados.email);
+  const info = db
+    .prepare("INSERT INTO users (apelido, nome, email, google_id, papel) VALUES (?, ?, ?, ?, ?)")
+    .run(apelido, dados.nome, dados.email, dados.googleId, dados.papel);
+
+  return {
+    ok: true,
+    novo: true,
+    conta: {
+      id: Number(info.lastInsertRowid),
+      apelido,
+      nome: dados.nome,
+      email: dados.email,
+      papel: dados.papel,
+    },
+  };
+}
+
+function gerarApelidoUnico(email: string): string {
+  const base = email.split("@")[0].toLowerCase().replace(/[^a-z0-9._]/g, "").slice(0, 20) || "usuario";
+  let apelido = base;
+  let n = 1;
+  while (db.prepare("SELECT id FROM users WHERE apelido = ?").get(apelido)) {
+    n += 1;
+    apelido = `${base}${n}`;
+  }
+  return apelido;
 }

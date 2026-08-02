@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { temPerfilCandidatoCompleto } from "@/lib/candidatos";
 
-export function LoginForm() {
+function LoginFormConteudo() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [apelido, setApelido] = useState("");
   const [senha, setSenha] = useState("");
   const [showPw, setShowPw] = useState(false);
-  const [erro, setErro] = useState("");
-  const [avisoGoogle, setAvisoGoogle] = useState(false);
+  const [erro, setErro] = useState(searchParams.get("erro_google") ?? "");
   const [enviando, setEnviando] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -54,11 +54,7 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-sm">
-      <button
-        type="button"
-        className="btn-ghost flex items-center justify-center gap-3"
-        onClick={() => setAvisoGoogle(true)}
-      >
+      <a href="/api/auth/google" className="btn-ghost flex items-center justify-center gap-3">
         <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
           <path
             fill="#4285F4"
@@ -78,12 +74,7 @@ export function LoginForm() {
           />
         </svg>
         Entrar com Google
-      </button>
-      {avisoGoogle && (
-        <p className="mt-2 text-center text-xs text-muted-2">
-          Login com Google ainda não está disponível — use apelido e senha.
-        </p>
-      )}
+      </a>
 
       <div className="my-6 flex items-center gap-4">
         <span className="h-px flex-1 bg-line" />
@@ -238,5 +229,13 @@ export function LoginForm() {
         .
       </p>
     </div>
+  );
+}
+
+export function LoginForm() {
+  return (
+    <Suspense fallback={null}>
+      <LoginFormConteudo />
+    </Suspense>
   );
 }
