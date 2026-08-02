@@ -9,6 +9,7 @@ export function CriarContaForm() {
   const [papel, setPapel] = useState<"voz" | "editor">("voz");
   const [nome, setNome] = useState("");
   const [apelido, setApelido] = useState("");
+  const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
   const [erro, setErro] = useState("");
@@ -16,8 +17,8 @@ export function CriarContaForm() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!nome.trim() || !apelido.trim() || !senha) {
-      setErro("Preencha nome, apelido e senha.");
+    if (!nome.trim() || !apelido.trim() || !email.trim() || !senha) {
+      setErro("Preencha nome, apelido, e-mail e senha.");
       return;
     }
     if (senha !== confirmar) {
@@ -30,7 +31,7 @@ export function CriarContaForm() {
     const resp = await fetch("/api/auth/cadastro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, apelido, senha, papel }),
+      body: JSON.stringify({ nome, apelido, email, senha, papel }),
     });
     const dados = await resp.json();
 
@@ -108,6 +109,27 @@ export function CriarContaForm() {
             }}
           />
           <p className="mt-1.5 text-xs text-muted-2">3-24 letras, números, ponto ou underline.</p>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="email" className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted">
+            E-mail
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            className="field-input"
+            placeholder="seu@email.com"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErro("");
+            }}
+          />
         </div>
 
         <div className="mb-4">
