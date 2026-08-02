@@ -1,0 +1,173 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+export function CriarContaForm() {
+  const router = useRouter();
+  const [papel, setPapel] = useState<"voz" | "editor">("voz");
+  const [nome, setNome] = useState("");
+  const [apelido, setApelido] = useState("");
+  const [senha, setSenha] = useState("");
+  const [confirmar, setConfirmar] = useState("");
+  const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!nome.trim() || !apelido.trim() || !senha) {
+      setErro("Preencha nome, apelido e senha.");
+      return;
+    }
+    if (senha !== confirmar) {
+      setErro("As senhas não são iguais.");
+      return;
+    }
+
+    setErro("");
+    setEnviando(true);
+    const resp = await fetch("/api/auth/cadastro", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome, apelido, senha, papel }),
+    });
+    const dados = await resp.json();
+
+    if (!resp.ok) {
+      setErro(dados.erro ?? "Não deu pra criar a conta.");
+      setEnviando(false);
+      return;
+    }
+
+    router.push(papel === "editor" ? "/editor" : "/porta-voz/criar-perfil");
+    router.refresh();
+  }
+
+  return (
+    <div className="w-full max-w-sm">
+      <div className="mb-6 flex items-center gap-1 rounded-xl border border-line bg-surface-2 p-1">
+        <button
+          type="button"
+          onClick={() => setPapel("voz")}
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            papel === "voz" ? "bg-gold/10 text-gold-hi" : "text-muted hover:text-text"
+          }`}
+        >
+          Sou porta-voz
+        </button>
+        <button
+          type="button"
+          onClick={() => setPapel("editor")}
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            papel === "editor" ? "bg-gold/10 text-gold-hi" : "text-muted hover:text-text"
+          }`}
+        >
+          Sou editor
+        </button>
+      </div>
+
+      <form onSubmit={onSubmit} noValidate>
+        <div className="mb-4">
+          <label htmlFor="nome" className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted">
+            Nome
+          </label>
+          <input
+            id="nome"
+            name="nome"
+            className="field-input"
+            placeholder="seu nome"
+            autoComplete="name"
+            value={nome}
+            onChange={(e) => {
+              setNome(e.target.value);
+              setErro("");
+            }}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label
+            htmlFor="apelido"
+            className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
+          >
+            Apelido
+          </label>
+          <input
+            id="apelido"
+            name="apelido"
+            className="field-input"
+            placeholder="ex: jr.eneias"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            value={apelido}
+            onChange={(e) => {
+              setApelido(e.target.value);
+              setErro("");
+            }}
+          />
+          <p className="mt-1.5 text-xs text-muted-2">3-24 letras, números, ponto ou underline.</p>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="senha" className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted">
+            Senha
+          </label>
+          <input
+            id="senha"
+            name="senha"
+            type="password"
+            className="field-input"
+            placeholder="mínimo 6 caracteres"
+            autoComplete="new-password"
+            value={senha}
+            onChange={(e) => {
+              setSenha(e.target.value);
+              setErro("");
+            }}
+          />
+        </div>
+
+        <div className="mb-5">
+          <label
+            htmlFor="confirmar"
+            className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
+          >
+            Confirmar senha
+          </label>
+          <input
+            id="confirmar"
+            name="confirmar"
+            type="password"
+            className="field-input"
+            placeholder="repita a senha"
+            autoComplete="new-password"
+            value={confirmar}
+            onChange={(e) => {
+              setConfirmar(e.target.value);
+              setErro("");
+            }}
+          />
+        </div>
+
+        {erro && (
+          <p role="alert" className="mb-4 text-center text-sm text-danger">
+            {erro}
+          </p>
+        )}
+
+        <button type="submit" className="btn-gold" disabled={enviando}>
+          {enviando ? "Criando conta…" : "Criar minha conta"}
+        </button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-muted">
+        Já é confrade?{" "}
+        <Link href="/login" className="font-medium text-gold-hi hover:underline">
+          Entrar
+        </Link>
+      </p>
+    </div>
+  );
+}

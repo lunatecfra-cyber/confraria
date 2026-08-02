@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  PAUTAS,
-  PORTA_VOZ_ATUAL,
-  ROTULO_FORMATO,
-  type Pauta,
-} from "@/lib/pautas";
+import { PAUTAS, ROTULO_FORMATO, type Pauta } from "@/lib/pautas";
+import { lerSessao } from "@/lib/sessao";
 
 export const metadata: Metadata = { title: "Minhas Missões — Confraria" };
 
@@ -25,8 +21,9 @@ function mensagemStatus(status: Pauta["status"]): { texto: string; cor: string }
   }
 }
 
-export default function PortaVozHome() {
-  const minhas = PAUTAS.filter((p) => p.portaVoz === PORTA_VOZ_ATUAL.nome);
+export default async function PortaVozHome() {
+  const sessao = await lerSessao();
+  const minhas = PAUTAS.filter((p) => p.portaVoz === sessao?.nome);
 
   // fila compartilhada: todas as pautas disponíveis (de todo mundo), ordenadas por criação
   const filaGeral = PAUTAS.filter((p) => p.status === "disponivel").sort(

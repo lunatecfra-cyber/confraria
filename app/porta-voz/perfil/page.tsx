@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { PAUTAS, PORTA_VOZ_ATUAL, ROTULO_STATUS } from "@/lib/pautas";
+import { PAUTAS, ROTULO_STATUS } from "@/lib/pautas";
 import { getCandidato } from "@/lib/candidatos";
+import { lerSessao } from "@/lib/sessao";
 import { Stat } from "@/components/stat";
 import { Card } from "@/components/card";
 import { AvatarCandidato } from "@/components/avatar-candidato";
@@ -11,9 +12,10 @@ import { NomeCandidato } from "@/components/nome-candidato";
 
 export const metadata: Metadata = { title: "Meu Perfil — Confraria" };
 
-export default function PerfilPortaVozPage() {
-  const cand = getCandidato(PORTA_VOZ_ATUAL.nome);
-  const minhas = PAUTAS.filter((p) => p.portaVoz === PORTA_VOZ_ATUAL.nome);
+export default async function PerfilPortaVozPage() {
+  const sessao = await lerSessao();
+  const cand = getCandidato(sessao?.nome ?? "");
+  const minhas = PAUTAS.filter((p) => p.portaVoz === sessao?.nome);
   const naFila = minhas.filter((p) => p.status === "disponivel").length;
   const emProducao = minhas.filter((p) =>
     ["reservada", "minha", "em_revisao", "reedicao"].includes(p.status)

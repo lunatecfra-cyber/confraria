@@ -3,73 +3,111 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  ANOS_ELEICAO,
+  BANDEIRAS_TEMAS,
   CARGOS_POLITICOS,
+  ESTADOS_BRASIL,
+  EXEMPLOS_TOM,
+  PALAVRAS_CHAVE_SUGERIDAS,
   TONS_COMUNICACAO,
+  gerarBioSugerida,
   getCandidato,
   iniciais,
   lerPerfilCandidatoLocal,
   salvarPerfilCandidatoLocal,
+  type Candidato,
+  type RedesSociais,
 } from "@/lib/candidatos";
-import { PORTA_VOZ_ATUAL } from "@/lib/pautas";
+import { IconInstagram, IconTiktok, IconX, IconYoutube } from "@/components/icones-redes";
 
-type Chave =
-  | "identidade"
-  | "cargo"
-  | "candidatura"
-  | "local"
-  | "apresentacao"
-  | "analise"
-  | "revisao";
+type Aba = "objetivo" | "estilo" | "canais";
 
-const PASSOS: Chave[] = [
-  "identidade",
-  "cargo",
-  "candidatura",
-  "local",
-  "apresentacao",
-  "analise",
-  "revisao",
+const ABAS: { chave: Aba; rotulo: string }[] = [
+  { chave: "objetivo", rotulo: "Objetivo e Temas" },
+  { chave: "estilo", rotulo: "Estilo e Bio" },
+  { chave: "canais", rotulo: "Canais e Visual" },
 ];
+
+function chip(ativo: boolean) {
+  return `rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+    ativo
+      ? "border-gold-lo bg-gold/10 text-gold-hi"
+      : "border-line bg-surface text-muted hover:border-gold/30 hover:text-text"
+  }`;
+}
 
 function CriarPerfilConteudo() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const viaGoogle = searchParams.get("via") === "google";
   const fileRef = useRef<HTMLInputElement>(null);
-  const seed = getCandidato(PORTA_VOZ_ATUAL.nome);
-  const passos = PASSOS;
+  const bioAutoTentada = useRef(false);
 
-  const [passo, setPasso] = useState(0);
+  const [nomeConta, setNomeConta] = useState<string | null>(null);
+  const [seed, setSeed] = useState<Candidato | null>(null);
+  const [aba, setAba] = useState<Aba>("objetivo");
+
   const [nome, setNome] = useState("");
   const [foto, setFoto] = useState<string | undefined>(undefined);
   const [cargo, setCargo] = useState("");
   const [disputaPor, setDisputaPor] = useState("");
   const [anoEleicao, setAnoEleicao] = useState("2026");
-  const [canais, setCanais] = useState("");
   const [local, setLocal] = useState("");
-  const [bio, setBio] = useState("");
+  const [bandeiras, setBandeiras] = useState<string[]>([]);
+
   const [tom, setTom] = useState("");
+  const [palavrasChave, setPalavrasChave] = useState<string[]>([]);
+  const [novaPalavraChave, setNovaPalavraChave] = useState("");
+  const [bio, setBio] = useState("");
+
+  const [redes, setRedes] = useState<RedesSociais>({});
+
   const [erro, setErro] = useState("");
 
-  // se já tinha montado o perfil antes, pré-preenche (vira modo "editar")
+  // busca quem está logado, monta o ponto de partida e, se já tinha montado o
+  // perfil antes, pré-preenche por cima (vira modo "editar")
   useEffect(() => {
-    const salvo = lerPerfilCandidatoLocal();
-    if (salvo && salvo.nome === PORTA_VOZ_ATUAL.nome) {
-      setNome(salvo.nomeExibicao ?? seed.nome);
-      setFoto(salvo.foto);
-      setCargo(salvo.cargo ?? "");
-      setDisputaPor(salvo.disputaPor ?? "");
-      setAnoEleicao(salvo.anoEleicao ?? "2026");
-      setCanais(salvo.canais ?? "");
-      setLocal(salvo.local ?? seed.local);
-      setBio(salvo.bio ?? seed.bio);
-      setTom(salvo.tomComunicacao ?? "");
-    } else {
-      setNome(seed.nome);
-      setLocal(seed.local);
-    }
+    fetch("/api/auth/sessao")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((sessao: { nome: string } | null) => {
+        if (!sessao) {
+          router.push("/login");
+          return;
+        }
+        const s = getCandidato(sessao.nome);
+        setNomeConta(sessao.nome);
+        setSeed(s);
+
+        const salvo = lerPerfilCandidatoLocal();
+        if (salvo && salvo.nome === sessao.nome) {
+          setNome(salvo.nomeExibicao ?? s.nome);
+          setFoto(salvo.foto);
+          setCargo(salvo.cargo ?? "");
+          setDisputaPor(salvo.disputaPor ?? "");
+          setAnoEleicao(salvo.anoEleicao ?? "2026");
+          setLocal(salvo.local ?? s.local);
+          setBandeiras(salvo.bandeiras ?? []);
+          setTom(salvo.tomComunicacao ?? "");
+          setPalavrasChave(salvo.palavrasChave ?? []);
+          setBio(salvo.bio ?? s.bio);
+          setRedes(salvo.redes ?? {});
+        } else {
+          setNome(s.nome);
+          setLocal(s.local);
+        }
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // sugestão automática de bio: dispara uma única vez, na primeira vez que a
+  // aba "estilo" abre com a bio ainda vazia — nunca sobrescreve texto digitado
+  useEffect(() => {
+    if (aba === "estilo" && !bioAutoTentada.current && !bio.trim()) {
+      bioAutoTentada.current = true;
+      const sugestao = gerarBioSugerida({ cargo, disputaPor, local, bandeiras, tom });
+      if (sugestao) setBio(sugestao);
+    }
+  }, [aba, bio, cargo, disputaPor, local, bandeiras, tom]);
 
   function onEscolherFoto(e: React.ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0];
@@ -79,289 +117,441 @@ function CriarPerfilConteudo() {
     leitor.readAsDataURL(arquivo);
   }
 
-  const etapa = passos[passo];
-
-  function validarPasso(): boolean {
-    if (etapa === "identidade" && !nome.trim()) {
-      setErro("Precisa do seu nome pra continuar.");
-      return false;
-    }
-    if (etapa === "cargo" && !cargo) {
-      setErro("Escolhe o cargo pra continuar.");
-      return false;
-    }
-    if (etapa === "local" && !local.trim()) {
-      setErro("Conta mais ou menos onde você fica.");
-      return false;
-    }
-    setErro("");
-    return true;
+  function alternarBandeira(b: string) {
+    setBandeiras((atual) => (atual.includes(b) ? atual.filter((x) => x !== b) : [...atual, b]));
   }
 
-  function avancar() {
-    if (!validarPasso()) return;
-    setErro("");
-    setPasso((p) => Math.min(p + 1, passos.length - 1));
+  function alternarPalavraChave(p: string) {
+    setPalavrasChave((atual) => {
+      if (atual.includes(p)) return atual.filter((x) => x !== p);
+      if (atual.length >= 3) return atual;
+      return [...atual, p];
+    });
   }
 
-  function voltar() {
-    setErro("");
-    setPasso((p) => Math.max(p - 1, 0));
+  function adicionarPalavraDigitada() {
+    const p = novaPalavraChave.trim();
+    if (!p || palavrasChave.length >= 3 || palavrasChave.includes(p)) return;
+    setPalavrasChave((atual) => [...atual, p]);
+    setNovaPalavraChave("");
+  }
+
+  function gerarSugestaoBio() {
+    const sugestao = gerarBioSugerida({ cargo, disputaPor, local, bandeiras, tom });
+    if (sugestao) setBio(sugestao);
+  }
+
+  function atualizarRede(campo: keyof RedesSociais, valor: string) {
+    setRedes((atual) => ({ ...atual, [campo]: valor.trim() || undefined }));
+  }
+
+  if (!seed) {
+    return (
+      <div className="flex flex-1 items-center justify-center px-6 py-12 text-sm text-muted">
+        Carregando…
+      </div>
+    );
   }
 
   function concluir() {
+    if (!nomeConta) return;
+    if (!nome.trim()) {
+      setErro("Precisa do seu nome pra continuar.");
+      setAba("objetivo");
+      return;
+    }
+    if (!cargo) {
+      setErro("Escolhe o cargo pra continuar.");
+      setAba("objetivo");
+      return;
+    }
+    if (!local.trim()) {
+      setErro("Conta mais ou menos onde você fica.");
+      setAba("objetivo");
+      return;
+    }
+    setErro("");
     salvarPerfilCandidatoLocal({
-      nome: PORTA_VOZ_ATUAL.nome,
+      nome: nomeConta,
       nomeExibicao: nome.trim() || undefined,
       foto,
       cargo,
       disputaPor: disputaPor.trim() || undefined,
       anoEleicao: anoEleicao.trim() || undefined,
-      canais: canais.trim() || undefined,
+      redes: Object.values(redes).some(Boolean) ? redes : undefined,
       local: local.trim(),
       bio: bio.trim(),
       tomComunicacao: tom || undefined,
+      bandeiras: bandeiras.length > 0 ? bandeiras : undefined,
+      palavrasChave: palavrasChave.length > 0 ? palavrasChave : undefined,
     });
     router.push("/porta-voz");
   }
 
+  const checklist = [nome, cargo, disputaPor, local, bio, tom];
+  const progresso = Math.round(
+    (checklist.filter((c) => c.trim() !== "").length / checklist.length) * 100
+  );
+
   return (
     <div className="flex flex-1 flex-col items-center px-6 py-12">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-2xl">
         {/* barra de progresso */}
         <div className="mb-2 flex items-center justify-between text-xs text-muted-2">
-          <span>
-            Passo {passo + 1} de {passos.length}
-          </span>
-          <span>{Math.round(((passo + 1) / passos.length) * 100)}%</span>
+          <span>Perfil do candidato</span>
+          <span>{progresso}%</span>
         </div>
-        <div className="mb-9 h-1.5 overflow-hidden rounded-full bg-line">
+        <div className="mb-6 h-1.5 overflow-hidden rounded-full bg-line">
           <div
             className="h-full rounded-full bg-gradient-to-r from-gold-lo to-gold-hi transition-all duration-300"
-            style={{ width: `${((passo + 1) / passos.length) * 100}%` }}
+            style={{ width: `${progresso}%` }}
           />
         </div>
 
-        {viaGoogle && passo === 0 && (
+        {/* abas */}
+        <div className="mb-6 flex items-center gap-1 rounded-xl border border-line bg-surface-2 p-1">
+          {ABAS.map((a) => (
+            <button
+              key={a.chave}
+              type="button"
+              onClick={() => setAba(a.chave)}
+              className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                aba === a.chave ? "bg-gold/10 text-gold-hi" : "text-muted hover:text-text"
+              }`}
+            >
+              {a.rotulo}
+            </button>
+          ))}
+        </div>
+
+        {viaGoogle && aba === "objetivo" && (
           <p className="mb-5 rounded-lg border border-gold-lo/40 bg-gold/[0.06] px-3 py-2 text-xs text-gold-hi">
             A foto pode vir da sua conta Google depois. Por ora, confirma seu nome.
           </p>
         )}
 
-        {/* ---- identidade: nome + foto (foto só no caminho manual) ---- */}
-        {etapa === "identidade" && (
-          <section className="reveal">
-            <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
-              Quem é você?
-            </h1>
-            <p className="mt-2 text-sm text-muted">
-              {viaGoogle
-                ? "Confirma seu nome — é assim que vão te chamar na Confraria."
-                : "Seu nome e uma foto — é o que editores e o público vão ver primeiro."}
-            </p>
+        {erro && (
+          <p role="alert" className="mb-5 text-sm text-danger">
+            {erro}
+          </p>
+        )}
 
-            {!viaGoogle && (
-              <div className="mt-8 flex flex-col items-center">
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="group relative grid h-36 w-36 place-items-center overflow-hidden rounded-2xl border border-dashed border-line bg-surface transition-colors hover:border-gold/50"
-                >
-                  {foto ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- preview local, sem otimização
-                    <img src={foto} alt="Sua foto" className="h-full w-full object-cover" />
-                  ) : (
-                    <span
-                      className="grid h-full w-full place-items-center font-[family-name:var(--font-display)] text-4xl font-semibold text-black/80"
-                      style={{ background: seed.tint }}
+        {/* ---- aba 1: objetivo e temas ---- */}
+        {aba === "objetivo" && (
+          <section className="reveal flex flex-col gap-9">
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+                Quem é você
+              </h2>
+              <p className="mt-1 text-sm text-muted">
+                Nome e foto — é o que editores e o público vão ver primeiro.
+              </p>
+
+              <div className="mt-5 flex flex-col items-start gap-6 sm:flex-row sm:items-center">
+                {!viaGoogle && (
+                  <div className="flex flex-col items-center">
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="group relative grid h-28 w-28 place-items-center overflow-hidden rounded-2xl border border-dashed border-line bg-surface transition-colors hover:border-gold/50"
                     >
-                      {iniciais(nome || seed.nome)}
-                    </span>
-                  )}
-                  <span className="absolute inset-0 hidden items-center justify-center bg-ink/60 text-xs font-medium text-silver-hi group-hover:flex">
-                    {foto ? "Trocar" : "Enviar foto"}
-                  </span>
-                </button>
+                      {foto ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- preview local, sem otimização
+                        <img src={foto} alt="Sua foto" className="h-full w-full object-cover" />
+                      ) : (
+                        <span
+                          className="grid h-full w-full place-items-center font-[family-name:var(--font-display)] text-3xl font-semibold text-black/80"
+                          style={{ background: seed.tint }}
+                        >
+                          {iniciais(nome || seed.nome)}
+                        </span>
+                      )}
+                      <span className="absolute inset-0 hidden items-center justify-center bg-ink/60 text-xs font-medium text-silver-hi group-hover:flex">
+                        {foto ? "Trocar" : "Enviar foto"}
+                      </span>
+                    </button>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={onEscolherFoto}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="mt-2 text-xs font-medium text-gold-hi hover:underline"
+                    >
+                      {foto ? "Escolher outra" : "Escolher da galeria"}
+                    </button>
+                  </div>
+                )}
+
+                <div className="w-full flex-1">
+                  <label
+                    htmlFor="nome"
+                    className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
+                  >
+                    Nome
+                  </label>
+                  <input
+                    id="nome"
+                    className="field-input !pl-4"
+                    placeholder="Seu nome"
+                    value={nome}
+                    onChange={(e) => {
+                      setNome(e.target.value);
+                      setErro("");
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+                Dados da candidatura
+              </h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label
+                    htmlFor="cargo"
+                    className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
+                  >
+                    Cargo
+                  </label>
+                  <select
+                    id="cargo"
+                    className="field-input !pl-4"
+                    value={cargo}
+                    onChange={(e) => {
+                      setCargo(e.target.value);
+                      setErro("");
+                    }}
+                  >
+                    <option value="" disabled>
+                      Selecione…
+                    </option>
+                    {CARGOS_POLITICOS.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="disputaPor"
+                    className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
+                  >
+                    Estado (opcional)
+                  </label>
+                  <select
+                    id="disputaPor"
+                    className="field-input !pl-4"
+                    value={disputaPor}
+                    onChange={(e) => setDisputaPor(e.target.value)}
+                  >
+                    <option value="">Selecione…</option>
+                    {ESTADOS_BRASIL.map((e) => (
+                      <option key={e.uf} value={e.nome}>
+                        {e.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="ano"
+                    className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
+                  >
+                    Ano da eleição
+                  </label>
+                  <select
+                    id="ano"
+                    className="field-input !pl-4"
+                    value={anoEleicao}
+                    onChange={(e) => setAnoEleicao(e.target.value)}
+                  >
+                    {ANOS_ELEICAO.map((ano) => (
+                      <option key={ano} value={ano}>
+                        {ano}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <label
+                  htmlFor="local"
+                  className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
+                >
+                  Região
+                </label>
                 <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={onEscolherFoto}
+                  id="local"
+                  className="field-input !pl-4"
+                  placeholder="Ex: Petrópolis, RJ"
+                  value={local}
+                  onChange={(e) => {
+                    setLocal(e.target.value);
+                    setErro("");
+                  }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+                Bandeiras sugeridas
+              </h2>
+              <p className="mt-1 text-sm text-muted">Os temas que mais representam sua atuação.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {BANDEIRAS_TEMAS.map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => alternarBandeira(b)}
+                    aria-pressed={bandeiras.includes(b)}
+                    className={chip(bandeiras.includes(b))}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ---- aba 2: estilo e bio ---- */}
+        {aba === "estilo" && (
+          <section className="reveal flex flex-col gap-9">
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+                Como você se comunica
+              </h2>
+              <p className="mt-1 text-sm text-muted">
+                Ajuda a Confraria a te indicar editores com o tom certo.
+              </p>
+              <div className="mt-4 flex flex-col gap-2.5">
+                {TONS_COMUNICACAO.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTom(t)}
+                    aria-pressed={tom === t}
+                    className={`group rounded-xl border px-4 py-3 text-left transition-colors ${
+                      tom === t
+                        ? "border-gold-lo bg-gold/10"
+                        : "border-line bg-surface hover:border-gold/30"
+                    }`}
+                  >
+                    <span
+                      className={`block text-sm font-medium ${tom === t ? "text-gold-hi" : "text-muted group-hover:text-text"}`}
+                    >
+                      {t}
+                    </span>
+                    <span className="mt-1 block text-xs italic leading-snug text-muted-2">
+                      "{EXEMPLOS_TOM[t]}"
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+                Palavras-chave
+              </h2>
+              <p className="mt-1 text-sm text-muted">
+                Escolha ou digite até 3 palavras que definem sua postura.
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {PALAVRAS_CHAVE_SUGERIDAS.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => alternarPalavraChave(p)}
+                    disabled={palavrasChave.length >= 3 && !palavrasChave.includes(p)}
+                    aria-pressed={palavrasChave.includes(p)}
+                    className={chip(palavrasChave.includes(p))}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-3 flex gap-2">
+                <input
+                  className="field-input !pl-4"
+                  placeholder="Ou digite a sua…"
+                  value={novaPalavraChave}
+                  disabled={palavrasChave.length >= 3}
+                  onChange={(e) => setNovaPalavraChave(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      adicionarPalavraDigitada();
+                    }
+                  }}
                 />
                 <button
                   type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="mt-4 text-sm font-medium text-gold-hi hover:underline"
+                  className="btn-ghost w-auto px-4"
+                  disabled={palavrasChave.length >= 3 || !novaPalavraChave.trim()}
+                  onClick={adicionarPalavraDigitada}
                 >
-                  {foto ? "Escolher outra foto" : "Escolher da galeria"}
+                  Adicionar
                 </button>
               </div>
-            )}
 
-            <div className="mt-7">
-              <label
-                htmlFor="nome"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
-              >
-                Nome
-              </label>
-              <input
-                id="nome"
-                className="field-input !pl-4"
-                placeholder="Seu nome"
-                value={nome}
-                onChange={(e) => {
-                  setNome(e.target.value);
-                  setErro("");
-                }}
-              />
-            </div>
-          </section>
-        )}
-
-        {/* ---- cargo ---- */}
-        {etapa === "cargo" && (
-          <section className="reveal">
-            <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
-              Por qual cargo você disputa?
-            </h1>
-            <p className="mt-2 text-sm text-muted">
-              O cargo que você já ocupa, ou vai disputar.
-            </p>
-
-            <div className="mt-7">
-              <label
-                htmlFor="cargo"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
-              >
-                Cargo
-              </label>
-              <select
-                id="cargo"
-                className="field-input !pl-4"
-                value={cargo}
-                onChange={(e) => {
-                  setCargo(e.target.value);
-                  setErro("");
-                }}
-              >
-                <option value="" disabled>
-                  Selecione…
-                </option>
-                {CARGOS_POLITICOS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+              {palavrasChave.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {palavrasChave.map((p) => (
+                    <span
+                      key={p}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-gold-lo bg-gold/10 py-1 pl-3 pr-2 text-xs font-medium text-gold-hi"
+                    >
+                      {p}
+                      <button
+                        type="button"
+                        aria-label={`Remover ${p}`}
+                        onClick={() => alternarPalavraChave(p)}
+                        className="grid h-4 w-4 place-items-center rounded-full text-gold-hi/70 hover:text-gold-hi"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {palavrasChave.length >= 3 && (
+                <p className="mt-2 text-xs text-muted-2">Máximo de 3 palavras.</p>
+              )}
             </div>
 
-            <div className="mt-4">
-              <label
-                htmlFor="disputaPor"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
-              >
-                Por onde (opcional)
-              </label>
-              <input
-                id="disputaPor"
-                className="field-input !pl-4"
-                placeholder="Ex: Rio de Janeiro"
-                value={disputaPor}
-                onChange={(e) => setDisputaPor(e.target.value)}
-              />
-            </div>
-          </section>
-        )}
-
-        {/* ---- candidatura: ano + canais ---- */}
-        {etapa === "candidatura" && (
-          <section className="reveal">
-            <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
-              Sobre a sua candidatura
-            </h1>
-            <p className="mt-2 text-sm text-muted">Ano da eleição e onde te encontram.</p>
-
-            <div className="mt-7">
-              <label
-                htmlFor="ano"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
-              >
-                Ano em que vai ser eleito
-              </label>
-              <input
-                id="ano"
-                className="field-input !pl-4"
-                placeholder="Ex: 2026"
-                inputMode="numeric"
-                value={anoEleicao}
-                onChange={(e) => setAnoEleicao(e.target.value)}
-              />
-            </div>
-
-            <div className="mt-4">
-              <label
-                htmlFor="canais"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
-              >
-                Canais (opcional)
-              </label>
-              <input
-                id="canais"
-                className="field-input !pl-4"
-                placeholder="Ex: @seuinstagram"
-                value={canais}
-                onChange={(e) => setCanais(e.target.value)}
-              />
-            </div>
-          </section>
-        )}
-
-        {/* ---- local ---- */}
-        {etapa === "local" && (
-          <section className="reveal">
-            <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
-              Onde você fica?
-            </h1>
-            <p className="mt-2 text-sm text-muted">
-              Mais ou menos — cidade e estado já ajudam.
-            </p>
-
-            <div className="mt-7">
-              <label
-                htmlFor="local"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
-              >
-                Região
-              </label>
-              <input
-                id="local"
-                className="field-input !pl-4"
-                placeholder="Ex: Petrópolis, RJ"
-                value={local}
-                onChange={(e) => {
-                  setLocal(e.target.value);
-                  setErro("");
-                }}
-              />
-            </div>
-          </section>
-        )}
-
-        {/* ---- apresentação ---- */}
-        {etapa === "apresentacao" && (
-          <section className="reveal">
-            <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
-              Uma breve apresentação
-            </h1>
-            <p className="mt-2 text-sm text-muted">
-              Duas ou três frases sobre você — é o que aparece no seu perfil.
-            </p>
-
-            <div className="mt-7">
+            <div>
+              <div className="flex items-center justify-between">
+                <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+                  Sua biografia
+                </h2>
+                <button
+                  type="button"
+                  onClick={gerarSugestaoBio}
+                  className="text-xs font-medium text-gold-hi hover:underline"
+                >
+                  ✨ Gerar sugestão
+                </button>
+              </div>
+              <p className="mt-1 text-sm text-muted">
+                Já vem com uma sugestão pronta — edite à vontade.
+              </p>
               <textarea
-                className="field-input !pl-4"
+                className="field-input !pl-4 mt-3"
                 rows={5}
                 placeholder="Fale um pouquinho sobre você…"
                 value={bio}
@@ -371,119 +561,171 @@ function CriarPerfilConteudo() {
           </section>
         )}
 
-        {/* ---- análise simples de perfil ---- */}
-        {etapa === "analise" && (
-          <section className="reveal">
-            <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
-              Como você se comunica?
-            </h1>
-            <p className="mt-2 text-sm text-muted">
-              Ajuda a Confraria a te indicar editores com o tom certo.
-            </p>
+        {/* ---- aba 3: canais e visual final ---- */}
+        {aba === "canais" && (
+          <section className="reveal flex flex-col gap-9">
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+                Suas redes
+              </h2>
+              <p className="mt-1 text-sm text-muted">Só o @ ou o link já ajuda.</p>
 
-            <div className="mt-7 flex flex-col gap-2.5">
-              {TONS_COMUNICACAO.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTom(t)}
-                  aria-pressed={tom === t}
-                  className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${
-                    tom === t
-                      ? "border-gold-lo bg-gold/10 text-gold-hi"
-                      : "border-line bg-surface text-muted hover:border-gold/30 hover:text-text"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ---- revisão ---- */}
-        {etapa === "revisao" && (
-          <section className="reveal">
-            <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
-              Confere como ficou
-            </h1>
-            <p className="mt-2 text-sm text-muted">É assim que vão te ver na Confraria.</p>
-
-            <div className="mt-7 overflow-hidden rounded-2xl border border-line bg-surface/60">
-              <div
-                className="h-16"
-                style={{
-                  background:
-                    "radial-gradient(120% 160% at 15% 0%, rgba(244,206,31,0.22), transparent 55%), linear-gradient(120deg,#17140a,#0e0e12 60%,#0a0a0b)",
-                }}
-              />
-              <div className="px-5 pb-5">
-                <div className="-mt-9">
-                  {foto ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- preview local
-                    <img
-                      src={foto}
-                      alt={nome || seed.nome}
-                      className="h-16 w-16 rounded-xl object-cover"
-                      style={{ boxShadow: "0 0 0 3px var(--color-ink), 0 0 0 4px rgba(244,206,31,0.55)" }}
-                    />
-                  ) : (
-                    <span
-                      className="grid h-16 w-16 place-items-center rounded-xl font-[family-name:var(--font-display)] text-xl font-semibold text-black/80"
-                      style={{
-                        background: seed.tint,
-                        boxShadow: "0 0 0 3px var(--color-ink), 0 0 0 4px rgba(244,206,31,0.55)",
-                      }}
-                    >
-                      {iniciais(nome || seed.nome)}
-                    </span>
-                  )}
+              <div className="mt-4 flex flex-col gap-3">
+                <div className="relative flex items-center">
+                  <IconInstagram className="pointer-events-none absolute left-4 h-[17px] w-[17px] text-muted-2" />
+                  <input
+                    className="field-input"
+                    placeholder="Instagram — @seuperfil"
+                    value={redes.instagram ?? ""}
+                    onChange={(e) => atualizarRede("instagram", e.target.value)}
+                  />
                 </div>
-                <p className="mt-3 font-[family-name:var(--font-display)] text-lg font-semibold text-text">
-                  {nome || seed.nome}
-                </p>
-                <p className="text-sm text-gold-hi">
-                  {cargo || "—"}
-                  {disputaPor && <span className="text-muted-2"> — {disputaPor}</span>}
-                  {anoEleicao && <span className="text-muted-2"> · {anoEleicao}</span>}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-2">
-                  {local || "—"}
-                  {canais && <span> · {canais}</span>}
-                </p>
-                {bio && <p className="mt-3 text-sm leading-relaxed text-muted">{bio}</p>}
-                {tom && (
-                  <p className="mt-3 inline-block rounded-full border border-gold-lo/40 bg-gold/[0.07] px-2.5 py-0.5 text-[11px] text-gold-hi">
-                    tom: {tom}
-                  </p>
-                )}
+                <div className="relative flex items-center">
+                  <IconYoutube className="pointer-events-none absolute left-4 h-[17px] w-[17px] text-muted-2" />
+                  <input
+                    className="field-input"
+                    placeholder="YouTube — nome do canal"
+                    value={redes.youtube ?? ""}
+                    onChange={(e) => atualizarRede("youtube", e.target.value)}
+                  />
+                </div>
+                <div className="relative flex items-center">
+                  <IconTiktok className="pointer-events-none absolute left-4 h-[17px] w-[17px] text-muted-2" />
+                  <input
+                    className="field-input"
+                    placeholder="TikTok — @seuperfil"
+                    value={redes.tiktok ?? ""}
+                    onChange={(e) => atualizarRede("tiktok", e.target.value)}
+                  />
+                </div>
+                <div className="relative flex items-center">
+                  <IconX className="pointer-events-none absolute left-4 h-[17px] w-[17px] text-muted-2" />
+                  <input
+                    className="field-input"
+                    placeholder="X — @seuperfil"
+                    value={redes.x ?? ""}
+                    onChange={(e) => atualizarRede("x", e.target.value)}
+                  />
+                </div>
               </div>
             </div>
-          </section>
-        )}
 
-        {erro && (
-          <p role="alert" className="mt-4 text-sm text-danger">
-            {erro}
-          </p>
-        )}
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+                Confere como ficou
+              </h2>
+              <p className="mt-1 text-sm text-muted">É assim que vão te ver na Confraria.</p>
 
-        <div className="mt-8 flex gap-3">
-          {passo > 0 && (
-            <button type="button" className="btn-ghost w-32" onClick={voltar}>
-              Voltar
-            </button>
-          )}
-          {passo < passos.length - 1 ? (
-            <button type="button" className="btn-gold flex-1" onClick={avancar}>
-              {etapa === "identidade" && !viaGoogle && !foto ? "Continuar sem foto" : "Continuar"}
-            </button>
-          ) : (
-            <button type="button" className="btn-gold flex-1" onClick={concluir}>
+              <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-surface/60">
+                <div
+                  className="h-16"
+                  style={{
+                    background:
+                      "radial-gradient(120% 160% at 15% 0%, rgba(244,206,31,0.22), transparent 55%), linear-gradient(120deg,#17140a,#0e0e12 60%,#0a0a0b)",
+                  }}
+                />
+                <div className="px-5 pb-5">
+                  <div className="-mt-9">
+                    {foto ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- preview local
+                      <img
+                        src={foto}
+                        alt={nome || seed.nome}
+                        className="h-16 w-16 rounded-xl object-cover"
+                        style={{ boxShadow: "0 0 0 3px var(--color-ink), 0 0 0 4px rgba(244,206,31,0.55)" }}
+                      />
+                    ) : (
+                      <span
+                        className="grid h-16 w-16 place-items-center rounded-xl font-[family-name:var(--font-display)] text-xl font-semibold text-black/80"
+                        style={{
+                          background: seed.tint,
+                          boxShadow: "0 0 0 3px var(--color-ink), 0 0 0 4px rgba(244,206,31,0.55)",
+                        }}
+                      >
+                        {iniciais(nome || seed.nome)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-3 font-[family-name:var(--font-display)] text-lg font-semibold text-text">
+                    {nome || seed.nome}
+                  </p>
+                  <p className="text-sm text-gold-hi">
+                    {cargo || "—"}
+                    {disputaPor && <span className="text-muted-2"> — {disputaPor}</span>}
+                    {anoEleicao && <span className="text-muted-2"> · {anoEleicao}</span>}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-2">{local || "—"}</p>
+
+                  {(redes.instagram || redes.youtube || redes.tiktok || redes.x) && (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-2">
+                      {redes.instagram && (
+                        <span className="inline-flex items-center gap-1">
+                          <IconInstagram className="h-3.5 w-3.5" />
+                          {redes.instagram}
+                        </span>
+                      )}
+                      {redes.youtube && (
+                        <span className="inline-flex items-center gap-1">
+                          <IconYoutube className="h-3.5 w-3.5" />
+                          {redes.youtube}
+                        </span>
+                      )}
+                      {redes.tiktok && (
+                        <span className="inline-flex items-center gap-1">
+                          <IconTiktok className="h-3.5 w-3.5" />
+                          {redes.tiktok}
+                        </span>
+                      )}
+                      {redes.x && (
+                        <span className="inline-flex items-center gap-1">
+                          <IconX className="h-3.5 w-3.5" />
+                          {redes.x}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {bio && <p className="mt-3 text-sm leading-relaxed text-muted">{bio}</p>}
+
+                  {(tom || bandeiras.length > 0) && (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {tom && (
+                        <span className="inline-block rounded-full border border-gold-lo/40 bg-gold/[0.07] px-2.5 py-0.5 text-[11px] text-gold-hi">
+                          tom: {tom}
+                        </span>
+                      )}
+                      {bandeiras.map((b) => (
+                        <span
+                          key={b}
+                          className="inline-block rounded-full border border-gold-lo/30 bg-gold/10 px-2.5 py-0.5 text-[11px] text-gold-hi"
+                        >
+                          {b}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {palavrasChave.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {palavrasChave.map((p) => (
+                        <span
+                          key={p}
+                          className="inline-block rounded-full border border-line px-2.5 py-0.5 text-[11px] italic text-muted-2"
+                        >
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <button type="button" className="btn-gold" onClick={concluir}>
               Concluir e ver minhas missões
             </button>
-          )}
-        </div>
+          </section>
+        )}
       </div>
     </div>
   );

@@ -33,6 +33,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# banco local do servidor de auth
+confraria.db
+confraria.db-*
+
 # vercel
 .vercel
 
@@ -42,3 +46,5 @@ next-env.d.ts
 
 # claude code
 .claude/
+
+.vercel

@@ -1,11 +1,20 @@
+export type RedesSociais = {
+  instagram?: string;
+  youtube?: string;
+  tiktok?: string;
+  x?: string;
+};
+
 export type Candidato = {
   slug: string;
   nome: string;
   cargo: string;
   disputaPor?: string; // por onde disputa o cargo (ex: "Rio de Janeiro")
   anoEleicao?: string; // ano em que vai ser eleito (ex: "2026")
-  canais?: string; // redes sociais / Instagram
+  redes?: RedesSociais;
   tomComunicacao?: string; // como ele se comunica (vem da análise de perfil)
+  bandeiras?: string[]; // temas/pautas principais (ex: "Segurança", "Educação")
+  palavrasChave?: string[]; // até 3 palavras que definem a postura do candidato
   local: string;
   proximidade: number; // 0 = longe (cinza), 1 = pertinho (amarelo)
   bio: string;
@@ -32,19 +41,127 @@ export const TONS_COMUNICACAO = [
   "Leve",
 ] as const;
 
+// uma frase de exemplo por tom, pra ajudar o candidato a escolher o que mais
+// se parece com o jeito dele de falar
+export const EXEMPLOS_TOM: Record<(typeof TONS_COMUNICACAO)[number], string> = {
+  "Direto e firme": "Chega de enrolação: o problema é esse, e é assim que a gente resolve.",
+  Sóbrio: "Analisamos os números com calma antes de prometer qualquer coisa.",
+  Empático: "Eu sei que não é fácil. Vamos passar por isso juntos.",
+  Ágil: "Rápido: gravou hoje de manhã, já foi ao ar à tarde.",
+  Leve: "Sem drama, sem discurso pronto — só a real, do nosso jeito.",
+};
+
+export const ANOS_ELEICAO = ["2026", "2028", "2030", "2032", "2034"] as const;
+
+export const BANDEIRAS_TEMAS = [
+  "Segurança",
+  "Educação",
+  "Saúde",
+  "Economia",
+  "Emprego",
+  "Meio Ambiente",
+  "Infraestrutura",
+  "Moradia",
+  "Transporte",
+  "Cultura",
+  "Assistência Social",
+  "Tecnologia",
+] as const;
+
+export const PALAVRAS_CHAVE_SUGERIDAS = [
+  "Transparente",
+  "Combativo",
+  "Próximo do povo",
+  "Técnico",
+  "Ousado",
+  "Conciliador",
+  "Persistente",
+  "Acessível",
+] as const;
+
+// frase de fechamento da bio automática, uma por tom — mesmo espírito de
+// EXEMPLOS_TOM, mas escrita em primeira pessoa pra encerrar uma bio
+const FECHO_BIO_POR_TOM: Record<(typeof TONS_COMUNICACAO)[number], string> = {
+  "Direto e firme": "Fala clara, sem rodeio — resultado é o que importa.",
+  Sóbrio: "Decisão pensada com calma, sempre baseada em dado e fato.",
+  Empático: "Perto das pessoas, ouvindo antes de agir.",
+  Ágil: "Rápido pra entender o problema, mais rápido ainda pra resolver.",
+  Leve: "Sem discurso pronto — só a real, no dia a dia.",
+};
+
+// monta uma sugestão de bio a partir do que já foi preenchido no assistente —
+// o candidato pode editar por cima ou pedir outra sugestão
+export function gerarBioSugerida(dados: {
+  cargo?: string;
+  disputaPor?: string;
+  local?: string;
+  bandeiras?: string[];
+  tom?: string;
+}): string {
+  const onde = dados.disputaPor || dados.local;
+  const abertura = dados.cargo
+    ? `${dados.cargo}${onde ? ` por ${onde}` : ""}.`
+    : onde
+      ? `Candidato(a) em ${onde}.`
+      : "";
+
+  const temas =
+    dados.bandeiras && dados.bandeiras.length > 0
+      ? `Foco em ${dados.bandeiras.join(", ")}.`
+      : "";
+
+  const fecho = dados.tom
+    ? FECHO_BIO_POR_TOM[dados.tom as (typeof TONS_COMUNICACAO)[number]]
+    : "";
+
+  return [abertura, temas, fecho].filter(Boolean).join(" ");
+}
+
+export const ESTADOS_BRASIL = [
+  { uf: "AC", nome: "Acre" },
+  { uf: "AL", nome: "Alagoas" },
+  { uf: "AP", nome: "Amapá" },
+  { uf: "AM", nome: "Amazonas" },
+  { uf: "BA", nome: "Bahia" },
+  { uf: "CE", nome: "Ceará" },
+  { uf: "DF", nome: "Distrito Federal" },
+  { uf: "ES", nome: "Espírito Santo" },
+  { uf: "GO", nome: "Goiás" },
+  { uf: "MA", nome: "Maranhão" },
+  { uf: "MT", nome: "Mato Grosso" },
+  { uf: "MS", nome: "Mato Grosso do Sul" },
+  { uf: "MG", nome: "Minas Gerais" },
+  { uf: "PA", nome: "Pará" },
+  { uf: "PB", nome: "Paraíba" },
+  { uf: "PR", nome: "Paraná" },
+  { uf: "PE", nome: "Pernambuco" },
+  { uf: "PI", nome: "Piauí" },
+  { uf: "RJ", nome: "Rio de Janeiro" },
+  { uf: "RN", nome: "Rio Grande do Norte" },
+  { uf: "RS", nome: "Rio Grande do Sul" },
+  { uf: "RO", nome: "Rondônia" },
+  { uf: "RR", nome: "Roraima" },
+  { uf: "SC", nome: "Santa Catarina" },
+  { uf: "SP", nome: "São Paulo" },
+  { uf: "SE", nome: "Sergipe" },
+  { uf: "TO", nome: "Tocantins" },
+] as const;
+
 // perfil que o próprio candidato monta no primeiro login (sem backend real ainda,
 // fica salvo no navegador dele) — sobrepõe os dados fake de CANDIDATOS
 const PERFIL_LOCAL_KEY = "confraria_perfil_candidato";
 
 export type PerfilCandidatoLocal = {
-  nome: string; // chave interna — sempre PORTA_VOZ_ATUAL.nome, não é o que aparece na tela
+  nome: string; // chave interna — sempre o nome da conta logada, não é o que aparece na tela
   nomeExibicao?: string; // o nome de verdade que o candidato digitou, é esse que aparece
   foto?: string;
   cargo?: string;
   disputaPor?: string;
   anoEleicao?: string;
-  canais?: string;
+  redes?: RedesSociais;
   tomComunicacao?: string;
+  bandeiras?: string[];
+  palavrasChave?: string[];
   local?: string;
   bio?: string;
 };
@@ -81,8 +198,10 @@ export function aplicarPerfilLocal(cand: Candidato): Candidato {
     cargo: local.cargo ?? cand.cargo,
     disputaPor: local.disputaPor ?? cand.disputaPor,
     anoEleicao: local.anoEleicao ?? cand.anoEleicao,
-    canais: local.canais ?? cand.canais,
+    redes: local.redes ?? cand.redes,
     tomComunicacao: local.tomComunicacao ?? cand.tomComunicacao,
+    bandeiras: local.bandeiras ?? cand.bandeiras,
+    palavrasChave: local.palavrasChave ?? cand.palavrasChave,
     local: local.local ?? cand.local,
     bio: local.bio ?? cand.bio,
   };
@@ -98,6 +217,10 @@ export const CANDIDATOS: Record<string, Candidato> = {
     bio: "Segurança pública e comunidade. Fala direta, muito conteúdo de rua.",
     tint: "linear-gradient(135deg,#f4ce1f,#a9840e)",
     desde: "fevereiro de 2026",
+    tomComunicacao: "Direto e firme",
+    bandeiras: ["Segurança", "Infraestrutura"],
+    palavrasChave: ["Combativo", "Próximo do povo"],
+    redes: { instagram: "@busnelo", youtube: "Busnelo Oficial" },
   },
   "Marcia Lima": {
     slug: "marcia-lima",
@@ -107,11 +230,34 @@ export const CANDIDATOS: Record<string, Candidato> = {
     proximidade: 0.5,
     bio: "Saúde e educação. Tom sóbrio, gosta de entrevista e depoimento.",
     tint: "linear-gradient(135deg,#3a3a42,#12121a)",
+    tomComunicacao: "Sóbrio",
+    bandeiras: ["Saúde", "Educação"],
+    palavrasChave: ["Técnico", "Conciliador"],
+    redes: { instagram: "@marcialima", x: "@marcialima" },
   },
 };
 
+// porta-vozes cadastrados de verdade não têm entrada em CANDIDATOS (que só tem
+// os dois fake de demonstração) — monta um ponto de partida vazio pra eles,
+// que o assistente de perfil (criar-perfil) preenche em seguida
+function candidatoPadrao(nome: string): Candidato {
+  const slug = nome
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  return {
+    slug,
+    nome,
+    cargo: "",
+    local: "",
+    proximidade: 0,
+    bio: "",
+    tint: "linear-gradient(135deg,#3a3a42,#12121a)",
+  };
+}
+
 export function getCandidato(nome: string): Candidato {
-  return CANDIDATOS[nome];
+  return CANDIDATOS[nome] ?? candidatoPadrao(nome);
 }
 
 export function getCandidatoPorSlug(slug: string): Candidato | undefined {

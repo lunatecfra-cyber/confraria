@@ -1,0 +1,52 @@
+import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
+
+export const NOME_COOKIE = "confraria_sessao";
+const DURACAO = "30d";
+
+function chave() {
+  const segredo = process.env.AUTH_SECRET;
+  if (!segredo) throw new Error("AUTH_SECRET não configurado (.env.local)");
+  return new TextEncoder().encode(segredo);
+}
+
+export type Papel = "voz" | "editor";
+
+export type SessaoUsuario = {
+  id: number;
+  apelido: string;
+  nome: string;
+  papel: Papel;
+};
+
+export async function criarTokenSessao(usuario: SessaoUsuario) {
+  return new SignJWT({ ...usuario })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(DURACAO)
+    .sign(chave());
+}
+
+export async function verificarTokenSessao(token: string): Promise<SessaoUsuario | null> {
+  try {
+    const { payload } = await jwtVerify(token, chave());
+    if (
+      typeof payload.id === "number" &&
+      typeof payload.apelido === "string" &&
+      typeof payload.nome === "string" &&
+      (payload.papel === "voz" || payload.papel === "editor")
+    ) {
+      return { id: payload.id, apelido: payload.apelido, nome: payload.nome, papel: payload.papel };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function lerSessao(): Promise<SessaoUsuario | null> {
+  const jar = await cookies();
+  const token = jar.get(NOME_COOKIE)?.value;
+  if (!token) return null;
+  return verificarTokenSessao(token);
+}

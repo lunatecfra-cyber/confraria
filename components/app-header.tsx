@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { BotaoSair } from "@/components/botao-sair";
 import { EDITOR_ATUAL } from "@/lib/pautas";
 
 export function AppHeader() {
@@ -47,12 +48,7 @@ export function AppHeader() {
             {editor.nivel}
           </Link>
 
-          <Link
-            href="/"
-            className="text-xs uppercase tracking-[0.12em] text-muted transition-colors hover:text-silver-hi"
-          >
-            Sair
-          </Link>
+          <BotaoSair className="text-xs uppercase tracking-[0.12em] text-muted transition-colors hover:text-silver-hi" />
         </div>
       </div>
     </header>

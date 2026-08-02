@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
-import { PORTA_VOZ_ATUAL } from "@/lib/pautas";
+import { BotaoSair } from "@/components/botao-sair";
+import { lerSessao } from "@/lib/sessao";
 
-export default function PortaVozLayout({
+export default async function PortaVozLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const sessao = await lerSessao();
+
   return (
     <>
       <header className="border-b border-line-soft">
@@ -23,14 +26,9 @@ export default function PortaVozLayout({
               href="/porta-voz/perfil"
               className="hidden text-sm text-muted transition-colors hover:text-text sm:block"
             >
-              {PORTA_VOZ_ATUAL.nome} · porta-voz
+              {sessao?.nome} · porta-voz
             </Link>
-            <Link
-              href="/"
-              className="text-xs uppercase tracking-[0.12em] text-muted transition-colors hover:text-silver-hi"
-            >
-              Sair
-            </Link>
+            <BotaoSair className="text-xs uppercase tracking-[0.12em] text-muted transition-colors hover:text-silver-hi" />
           </div>
         </div>
       </header>

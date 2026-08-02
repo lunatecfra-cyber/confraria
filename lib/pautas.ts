@@ -42,11 +42,6 @@ export const EDITOR_ATUAL: Editor = {
   nota: 4.8, // mesmo valor de PERFIL_EDITOR.nota (lib/perfil.ts) - mesma pessoa, dado fake consistente
 };
 
-export const PORTA_VOZ_ATUAL = {
-  apelido: "busnelo",
-  nome: "Busnelo",
-};
-
 export const INSPETOR_ATUAL = {
   apelido: "coronel.reis",
 };
