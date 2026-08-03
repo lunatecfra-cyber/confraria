@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
-import { RecuperarForm } from "@/components/recuperar-form";
+import { RedefinirSenhaForm } from "@/components/redefinir-senha-form";
 
-export const metadata: Metadata = { title: "Recuperar senha — Oficina Amarela" };
+export const metadata: Metadata = { title: "Redefinir senha — Oficina Amarela" };
 
-export default function RecuperarPage() {
+export default function RedefinirSenhaPage() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-14">
       <Link href="/" className="mb-8 flex flex-col items-center text-center">
@@ -15,14 +15,11 @@ export default function RecuperarPage() {
         </p>
       </Link>
 
-      <h1 className="mb-2 font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
-        Recuperar senha
+      <h1 className="mb-7 font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
+        Escolher nova senha
       </h1>
-      <p className="mb-7 max-w-sm text-center text-sm text-muted">
-        Digite o e-mail da sua conta — mandamos um link pra você escolher uma senha nova.
-      </p>
 
-      <RecuperarForm />
+      <RedefinirSenhaForm />
     </main>
   );
 }

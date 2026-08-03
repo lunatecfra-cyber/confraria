@@ -73,3 +73,25 @@ export async function verificarEstadoAssinado(token: string): Promise<{ papel: P
     return null;
   }
 }
+
+// token de recuperação de senha — assinado, expira em 30min, carrega o id
+// da conta. Não precisa guardar nada no banco: o próprio token expira sozinho
+export async function criarTokenRecuperacao(userId: number) {
+  return new SignJWT({ uso: "recuperar-senha", userId })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("30m")
+    .sign(chave());
+}
+
+export async function verificarTokenRecuperacao(token: string): Promise<{ userId: number } | null> {
+  try {
+    const { payload } = await jwtVerify(token, chave());
+    if (payload.uso === "recuperar-senha" && typeof payload.userId === "number") {
+      return { userId: payload.userId };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}

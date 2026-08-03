@@ -101,6 +101,23 @@ export async function autenticarOuCriarContaGoogle(dados: {
   };
 }
 
+export async function buscarContaPorEmail(email: string): Promise<ContaUsuario | null> {
+  const [linha] = await sql`
+    SELECT id, apelido, nome, email, papel FROM users WHERE lower(email) = lower(${email.trim()})
+  `;
+  return (linha as ContaUsuario) ?? null;
+}
+
+export async function atualizarSenha(
+  userId: number,
+  novaSenha: string
+): Promise<{ ok: true } | { ok: false; erro: string }> {
+  if (novaSenha.length < 6) return { ok: false, erro: "Senha precisa de pelo menos 6 caracteres." };
+  const senha_hash = bcrypt.hashSync(novaSenha, 10);
+  await sql`UPDATE users SET senha_hash = ${senha_hash} WHERE id = ${userId}`;
+  return { ok: true };
+}
+
 async function gerarApelidoUnico(email: string): Promise<string> {
   const base = email.split("@")[0].toLowerCase().replace(/[^a-z0-9._]/g, "").slice(0, 20) || "usuario";
   let apelido = base;
