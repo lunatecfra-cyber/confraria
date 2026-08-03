@@ -1,42 +1,31 @@
-import Database from "better-sqlite3";
-import path from "node:path";
-
-const dbPath = path.join(process.cwd(), "confraria.db");
+import postgres from "postgres";
 
 declare global {
   // eslint-disable-next-line no-var
-  var __confrariaDb: Database.Database | undefined;
+  var __confrariaSql: ReturnType<typeof postgres> | undefined;
 }
 
-export const db = globalThis.__confrariaDb ?? new Database(dbPath);
+// conexão preguiçosa: só constrói o client (e só aí exige DATABASE_URL) na
+// primeira query de verdade, não na hora de importar o módulo — isso evita
+// que "npm run build" quebre sem a variável configurada
+function obterClient() {
+  if (globalThis.__confrariaSql) return globalThis.__confrariaSql;
 
-if (process.env.NODE_ENV !== "production") {
-  globalThis.__confrariaDb = db;
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL não configurado (.env.local)");
+
+  // prepare:false é obrigatório com o pooler do Supabase em modo "transaction"
+  const client = postgres(url, { prepare: false });
+  globalThis.__confrariaSql = client;
+  return client;
 }
 
-db.pragma("journal_mode = WAL");
-db.pragma("busy_timeout = 5000");
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    apelido TEXT NOT NULL UNIQUE COLLATE NOCASE,
-    nome TEXT NOT NULL,
-    email TEXT NOT NULL COLLATE NOCASE,
-    senha_hash TEXT,
-    google_id TEXT,
-    papel TEXT NOT NULL CHECK (papel IN ('voz','editor')),
-    criado_em TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`);
-
-// migrations pra bancos criados antes desses campos existirem
-const colunas = db.prepare("PRAGMA table_info(users)").all() as { name: string }[];
-if (!colunas.some((c) => c.name === "email")) {
-  db.exec(`ALTER TABLE users ADD COLUMN email TEXT COLLATE NOCASE;`);
+// wrapper de template literal — mesma ergonomia de `sql\`SELECT...\`` do
+// postgres.js, mas conectando só na hora do uso
+export function sql(strings: TemplateStringsArray, ...values: unknown[]) {
+  const client = obterClient() as unknown as (
+    strings: TemplateStringsArray,
+    ...values: unknown[]
+  ) => postgres.PendingQuery<postgres.Row[]>;
+  return client(strings, ...values);
 }
-if (!colunas.some((c) => c.name === "google_id")) {
-  db.exec(`ALTER TABLE users ADD COLUMN google_id TEXT;`);
-}
-db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);`);
-db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);`);

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ erro: "Escolha se você é porta-voz ou editor." }, { status: 400 });
   }
 
-  const resultado = criarConta({ nome, apelido, email, senha, papel });
+  const resultado = await criarConta({ nome, apelido, email, senha, papel });
   if (!resultado.ok) {
     return NextResponse.json({ erro: resultado.erro }, { status: 409 });
   }

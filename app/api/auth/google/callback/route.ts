@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     return erroRedirect(url.origin, "Não deu pra confirmar sua conta Google.");
   }
 
-  const resultado = autenticarOuCriarContaGoogle({
+  const resultado = await autenticarOuCriarContaGoogle({
     googleId: perfilGoogle.googleId,
     email: perfilGoogle.email,
     nome: perfilGoogle.nome,

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ erro: "Preencha apelido e senha." }, { status: 400 });
   }
 
-  const resultado = autenticar(apelido, senha);
+  const resultado = await autenticar(apelido, senha);
   if (!resultado.ok) {
     return NextResponse.json({ erro: resultado.erro }, { status: 401 });
   }
