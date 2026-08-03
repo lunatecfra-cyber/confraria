@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { NovaPautaForm } from "@/components/nova-pauta-form";
 
-export const metadata: Metadata = { title: "Nova Missão — Confraria" };
+export const metadata: Metadata = { title: "Nova Missão — Oficina Amarela" };
 
 export default function NovaPautaPage() {
   return (

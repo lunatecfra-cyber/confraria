@@ -3,7 +3,7 @@ import { AppHeader } from "@/components/app-header";
 import { EDITOR_ATUAL } from "@/lib/pautas";
 import { EDITORES } from "@/lib/perfil";
 
-export const metadata: Metadata = { title: "Ranking — Confraria" };
+export const metadata: Metadata = { title: "Ranking — Oficina Amarela" };
 
 export default function RankingPage() {
   const ordenado = [...EDITORES].sort((a, b) => b.reputacao - a.reputacao);

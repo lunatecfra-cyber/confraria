@@ -35,7 +35,7 @@ export default function Home() {
             className="text-gold-grad reveal mt-7 font-[family-name:var(--font-display)] text-4xl font-semibold tracking-[0.22em] lg:text-6xl"
             style={{ "--reveal-delay": "90ms" } as React.CSSProperties}
           >
-            CONFRARIA
+            OFICINA AMARELA
           </h1>
           <p
             className="reveal mt-4 text-sm text-muted lg:text-base"

@@ -11,7 +11,7 @@ export async function proxy(request: NextRequest) {
 
   const rotaExigePapel = request.nextUrl.pathname.startsWith("/porta-voz") ? "voz" : "editor";
 
-  if (sessao.papel !== rotaExigePapel) {
+  if (sessao.papel !== "admin" && sessao.papel !== rotaExigePapel) {
     const destino = sessao.papel === "voz" ? "/porta-voz" : "/editor";
     return NextResponse.redirect(new URL(destino, request.url));
   }

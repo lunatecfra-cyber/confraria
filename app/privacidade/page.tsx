@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 
-export const metadata: Metadata = { title: "Política de Privacidade — Confraria" };
+export const metadata: Metadata = { title: "Política de Privacidade — Oficina Amarela" };
 
 export default function PrivacidadePage() {
   return (
@@ -10,7 +10,7 @@ export default function PrivacidadePage() {
       <Link href="/" className="flex items-center gap-3">
         <Logo className="w-9" />
         <span className="font-[family-name:var(--font-display)] text-sm font-semibold tracking-[0.24em] text-gold">
-          CONFRARIA
+          OFICINA AMARELA
         </span>
       </Link>
 
@@ -26,10 +26,10 @@ export default function PrivacidadePage() {
       <div className="prose-conf mt-8 flex flex-col gap-6 text-[15px] leading-relaxed text-muted">
         <section>
           <h2 className="mb-2 font-[family-name:var(--font-display)] text-xl font-semibold text-text">
-            1. O que é a Confraria
+            1. O que é a Oficina Amarela
           </h2>
           <p>
-            A Confraria é uma plataforma que conecta porta-vozes (quem tem o vídeo bruto) a editores
+            A Oficina Amarela é uma plataforma que conecta porta-vozes (quem tem o vídeo bruto) a editores
             (quem edita), com um inspetor garantindo a qualidade antes da entrega final.
           </p>
         </section>

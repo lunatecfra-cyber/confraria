@@ -1,4 +1,4 @@
-# Confraria — Auditoria (bugs e melhorias)
+# Oficina Amarela — Auditoria (bugs e melhorias)
 
 > Gerado pelo loop de auditoria noturno (só leitura — nada aqui foi corrigido, é lista pro Vitor decidir).
 > Rodada 1 — 27/07/2026, 00:27. Meta da noite (5 bugs + 5 melhorias) batida nesta rodada.

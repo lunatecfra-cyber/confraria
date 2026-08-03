@@ -1,4 +1,4 @@
-# Confraria — Plano & Estrutura
+# Oficina Amarela — Plano & Estrutura
 
 > Plataforma que liga **porta-vozes → editores**, com **inspetor** validando a qualidade.
 > Abordagem: **PC primeiro**, mas tem que ficar ótimo no celular.

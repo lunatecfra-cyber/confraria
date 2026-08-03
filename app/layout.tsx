@@ -15,7 +15,7 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "Confraria",
+  title: "Oficina Amarela",
   description: "A guilda de editores. Pegue missões, entregue, suba de nível.",
   icons: { icon: "/emblema.png", apple: "/emblema.png" },
 };

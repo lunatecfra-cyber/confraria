@@ -3,7 +3,7 @@ import { AppHeader } from "@/components/app-header";
 import { DesafiosDia } from "@/components/desafios-dia";
 import { FilaPautas } from "@/components/fila-pautas";
 
-export const metadata: Metadata = { title: "Fila — Confraria" };
+export const metadata: Metadata = { title: "Fila — Oficina Amarela" };
 
 export default function EditorPage() {
   return (

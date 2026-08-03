@@ -1,4 +1,4 @@
-# Confraria — O que é obrigatório por lei (não só recomendado)
+# Oficina Amarela — O que é obrigatório por lei (não só recomendado)
 
 > Pesquisado em 28/07/2026. Diferente do `CHECKLIST-LANCAMENTO.md` (boas práticas gerais), esse aqui é só o
 > que a **lei brasileira** exige de verdade pra operar um site/plataforma. ⚠️ Não é parecer jurídico — é um
@@ -50,7 +50,7 @@ Internet + Código de Defesa do Consumidor.
 ## 5. Acessibilidade digital (situacional — vale a pena mesmo não sendo obrigatório hoje)
 
 A Lei Brasileira de Inclusão (13.146/2015) e o eMAG pesam mais forte pra serviço público ou empresas
-grandes. Pra Confraria hoje não é uma obrigação clara, mas como lida com muita gente diferente (editores,
+grandes. Pra Oficina Amarela hoje não é uma obrigação clara, mas como lida com muita gente diferente (editores,
 porta-vozes, candidatos), vale registrar como boa prática — não como "obrigatório" de verdade.
 
 ---

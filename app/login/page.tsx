@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { LoginForm } from "@/components/login-form";
 
-export const metadata: Metadata = { title: "Entrar — Confraria" };
+export const metadata: Metadata = { title: "Entrar — Oficina Amarela" };
 
 const PILARES = [
   {
@@ -32,7 +32,7 @@ export default function LoginPage() {
         <Link href="/" className="relative flex items-center gap-3">
           <Logo className="w-11" />
           <span className="font-[family-name:var(--font-display)] text-[15px] font-semibold tracking-[0.3em] text-gold">
-            CONFRARIA
+            OFICINA AMARELA
           </span>
         </Link>
 
@@ -70,12 +70,12 @@ export default function LoginPage() {
       </aside>
 
       <main className="flex flex-col items-center justify-center px-6 py-14">
-        <h1 className="sr-only">Confraria — entrar</h1>
+        <h1 className="sr-only">Oficina Amarela — entrar</h1>
 
         <div className="mb-8 flex flex-col items-center text-center lg:hidden">
           <Logo className="w-24" />
           <p className="text-gold-grad mt-4 font-[family-name:var(--font-display)] text-2xl font-semibold tracking-[0.2em]">
-            CONFRARIA
+            OFICINA AMARELA
           </p>
         </div>
 

@@ -17,7 +17,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const cand = getCandidatoPorSlug(slug);
-  return { title: cand ? `${cand.nome} — Confraria` : "Confraria" };
+  return { title: cand ? `${cand.nome} — Oficina Amarela` : "Oficina Amarela" };
 }
 
 export default async function CandidatoPage({

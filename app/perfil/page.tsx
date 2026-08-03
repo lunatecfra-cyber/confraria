@@ -11,7 +11,7 @@ import { Card } from "@/components/card";
 import { CelulaDisponibilidade } from "@/components/disponibilidade-cell";
 import { iniciais } from "@/lib/candidatos";
 
-export const metadata: Metadata = { title: "Meu Perfil — Confraria" };
+export const metadata: Metadata = { title: "Meu Perfil — Oficina Amarela" };
 
 export default function PerfilPage() {
   const p = PERFIL_EDITOR;

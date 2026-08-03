@@ -1,4 +1,4 @@
-# Confraria — Especificação Técnica
+# Oficina Amarela — Especificação Técnica
 
 > Fonte da verdade do projeto. Tudo que foi decidido até aqui, num lugar só.
 > Última atualização: 27/07/2026
@@ -83,13 +83,13 @@ flowchart TD
 
 ## 6. Integração com o Google Drive
 
-> ⚠️ **Mudou em 27/07/2026.** Era um Drive central único da Confraria; virou **Drive pessoal de cada porta-voz**.
+> ⚠️ **Mudou em 27/07/2026.** Era um Drive central único da Oficina Amarela; virou **Drive pessoal de cada porta-voz**.
 
 ### 6.1 Arquitetura
 
 - **Não existe Drive central.** Cada porta-voz sobe o bruto no **próprio** Google Drive, na pasta que quiser.
 - No login com Google, o porta-voz autoriza (OAuth) o app a **gerenciar permissões** dos arquivos que ele compartilhar
-  (escopo `drive.file` — só os arquivos que ele explicitamente usar na Confraria, não o Drive inteiro dele).
+  (escopo `drive.file` — só os arquivos que ele explicitamente usar na Oficina Amarela, não o Drive inteiro dele).
 - Esse consentimento gera um **token (com refresh) guardado no Supabase**, associado à conta do porta-voz.
 - Quando o porta-voz cria uma pauta, ele informa o link/arquivo do bruto (já na pasta dele). O `drive_file_id`
   salvo na pauta é **desse** arquivo, na conta **dele**.
@@ -212,7 +212,7 @@ Tudo texto. Estimativa: 1 pauta ≈ 1 KB → 1.000 pautas ≈ 1 MB. O plano grá
 
 | Item | Decisão |
 |---|---|
-| Nome | **Confraria** (o "do Caos" foi removido em 24/07/2026) |
+| Nome | **Oficina Amarela** (antigamente Confraria) |
 | Cor base | **Dourado/amarelo** (`#f4ce1f`) — é a cor da marca real |
 | Cor secundária | Prata só como detalhe discreto (linhas, texto secundário) |
 | Fundo | **Preto texturizado** (trama diagonal + granulado) |
@@ -296,4 +296,4 @@ Futuro: mesmo hub para design, coordenação e outros papéis.
 - `SETUP-GOOGLE.md` — passo a passo do Supabase + Google Cloud
 - `PESQUISA-F1.md` — pesquisa dos concorrentes
 - `referencia-login-v1.html` — protótipo HTML antigo
-- Obsidian: `Informações Úteis/Plataforma Confraria — Ferramentas e Sites.md`
+- Obsidian: `Informações Úteis/Plataforma Oficina Amarela — Ferramentas e Sites.md`

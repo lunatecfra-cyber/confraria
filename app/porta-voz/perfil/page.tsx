@@ -10,7 +10,7 @@ import { AvatarCandidato } from "@/components/avatar-candidato";
 import { DadosCandidato } from "@/components/dados-candidato";
 import { NomeCandidato } from "@/components/nome-candidato";
 
-export const metadata: Metadata = { title: "Meu Perfil — Confraria" };
+export const metadata: Metadata = { title: "Meu Perfil — Oficina Amarela" };
 
 export default async function PerfilPortaVozPage() {
   const sessao = await lerSessao();

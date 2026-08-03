@@ -434,7 +434,7 @@ function CriarPerfilConteudo() {
                 Como você se comunica
               </h2>
               <p className="mt-1 text-sm text-muted">
-                Ajuda a Confraria a te indicar editores com o tom certo.
+                Ajuda a Oficina Amarela a te indicar editores com o tom certo.
               </p>
               <div className="mt-4 flex flex-col gap-2.5">
                 {TONS_COMUNICACAO.map((t) => (
@@ -614,7 +614,7 @@ function CriarPerfilConteudo() {
               <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
                 Confere como ficou
               </h2>
-              <p className="mt-1 text-sm text-muted">É assim que vão te ver na Confraria.</p>
+              <p className="mt-1 text-sm text-muted">É assim que vão te ver na Oficina Amarela.</p>
 
               <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-surface/60">
                 <div

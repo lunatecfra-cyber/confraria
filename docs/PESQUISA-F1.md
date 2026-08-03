@@ -5,7 +5,7 @@
 
 ## O que roubar de cada um
 
-| Plataforma | Padrão-chave | Aplicar na Confraria |
+| Plataforma | Padrão-chave | Aplicar na Oficina Amarela |
 |---|---|---|
 | **Frame.io** | Papéis **reviewer vs approver**; assets organizados por **status, assignee, due date**; workspace em painéis | Inspetor = approver (aprova/pede reedição). Fila filtrável por status/prazo/candidato. |
 | **Vidchops** | **Brief criativo** (estilo, música, refs) + fila **um vídeo por vez, em ordem**; **3 rodadas de revisão** e o vídeo fecha; editor dedicado aprende o estilo | Brief mastigado em cada card. Reserva = "pega um vídeo por vez". Contador de revisões. |
@@ -15,7 +15,7 @@
 ## Esboço da F1 — Home do Editor (mobile-first)
 
 **Topo (header):**
-- Brasão pequeno + "Confraria"
+- Brasão pequeno + "Oficina Amarela"
 - Selo de nível do editor (ex.: 🥉 Confrade) + mini barra de progresso pro próximo nível
 - Avatar/menu
 

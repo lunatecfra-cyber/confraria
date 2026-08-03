@@ -206,7 +206,7 @@ function LoginFormConteudo() {
         )}
 
         <button type="submit" className="btn-gold" disabled={enviando}>
-          {enviando ? "Abrindo os portões…" : "Entrar na Confraria"}
+          {enviando ? "Abrindo os portões…" : "Entrar na Oficina Amarela"}
         </button>
       </form>
 

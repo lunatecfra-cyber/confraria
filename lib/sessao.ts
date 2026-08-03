@@ -10,7 +10,7 @@ function chave() {
   return new TextEncoder().encode(segredo);
 }
 
-export type Papel = "voz" | "editor";
+export type Papel = "voz" | "editor" | "admin";
 
 export type SessaoUsuario = {
   id: number;
@@ -34,7 +34,7 @@ export async function verificarTokenSessao(token: string): Promise<SessaoUsuario
       typeof payload.id === "number" &&
       typeof payload.apelido === "string" &&
       typeof payload.nome === "string" &&
-      (payload.papel === "voz" || payload.papel === "editor")
+      (payload.papel === "voz" || payload.papel === "editor" || payload.papel === "admin")
     ) {
       return { id: payload.id, apelido: payload.apelido, nome: payload.nome, papel: payload.papel };
     }

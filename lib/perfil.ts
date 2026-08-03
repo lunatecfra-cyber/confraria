@@ -115,7 +115,7 @@ export const DESAFIOS_HOJE: Desafio[] = [
   {
     id: "d2",
     titulo: "Mantenha a sequência",
-    descricao: "Acesse a Confraria hoje pra não perder o streak.",
+    descricao: "Acesse a Oficina Amarela hoje pra não perder o streak.",
     xp: 10,
     dificuldade: 1,
     cumprido: true,

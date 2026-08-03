@@ -6,7 +6,7 @@ type LogoProps = {
   style?: React.CSSProperties;
 };
 
-export function Logo({ className, alt = "Confraria", style }: LogoProps) {
+export function Logo({ className, alt = "Oficina Amarela", style }: LogoProps) {
   return (
     <Image
       src="/emblema.png"

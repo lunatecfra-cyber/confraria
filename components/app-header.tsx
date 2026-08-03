@@ -12,7 +12,7 @@ export function AppHeader() {
           <Link href="/editor" className="flex items-center gap-3">
             <Logo className="w-9" />
             <span className="hidden font-[family-name:var(--font-display)] text-sm font-semibold tracking-[0.24em] text-gold sm:inline">
-              CONFRARIA
+              OFICINA AMARELA
             </span>
           </Link>
 

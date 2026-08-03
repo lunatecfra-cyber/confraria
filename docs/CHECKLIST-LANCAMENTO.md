@@ -1,7 +1,7 @@
-# Confraria — Checklist pra colocar no ar
+# Oficina Amarela — Checklist pra colocar no ar
 
 > Pesquisado em 27/07/2026 a partir de checklists de lançamento de SaaS (referências gerais) + LGPD
-> (a lei que vale de verdade no Brasil — não GDPR). Adaptado pro que a Confraria realmente precisa hoje:
+> (a lei que vale de verdade no Brasil — não GDPR). Adaptado pro que a Oficina Amarela realmente precisa hoje:
 > **sem cobrança** (por enquanto), lida com **dado pessoal + token do Google Drive de cada porta-voz** — isso
 > pesa mais na parte legal do que num SaaS comum.
 
@@ -32,7 +32,7 @@
 
 ## 3. Legal — LGPD (o que vale no Brasil)
 
-⚠️ Essa seção pesa mais aqui do que num SaaS comum, porque a Confraria lida com **CPF/e-mail/token de Drive
+⚠️ Essa seção pesa mais aqui do que num SaaS comum, porque a Oficina Amarela lida com **CPF/e-mail/token de Drive
 de porta-vozes e editores reais** — inclusive políticos.
 
 - [x] **Política de Privacidade** — rascunho pronto em `/privacidade` (dados coletados, finalidade,
@@ -61,7 +61,7 @@ de porta-vozes e editores reais** — inclusive políticos.
 
 - [ ] Domínio próprio
 - [ ] E-mail profissional (ex: contato@...)
-- [ ] Instagram/rede social da Confraria (se for divulgar)
+- [ ] Instagram/rede social da Oficina Amarela (se for divulgar)
 
 ## 7. Só se um dia cobrar (não é o caso agora)
 

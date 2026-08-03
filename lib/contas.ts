@@ -84,7 +84,7 @@ export async function autenticarOuCriarContaGoogle(dados: {
 
   const [porEmail] = await sql`SELECT id FROM users WHERE lower(email) = lower(${dados.email})`;
   if (porEmail) {
-    return { ok: false, erro: "Esse e-mail já tem conta na Confraria — entra com apelido e senha." };
+    return { ok: false, erro: "Esse e-mail já tem conta na Oficina Amarela — entra com apelido e senha." };
   }
 
   const apelido = await gerarApelidoUnico(dados.email);

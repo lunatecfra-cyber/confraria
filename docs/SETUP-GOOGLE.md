@@ -18,8 +18,8 @@
 
 ## Parte 1 — Google Cloud (libera a API + login)
 
-- [ ] Entrar em <https://console.cloud.google.com> (pode ser com sua conta pessoal — não precisa de conta especial da Confraria)
-- [ ] Criar projeto: `confraria`
+- [ ] Entrar em <https://console.cloud.google.com> (pode ser com sua conta pessoal — não precisa de conta especial da Oficina Amarela)
+- [ ] Criar projeto: `oficina-amarela`
 - [ ] **APIs e Serviços → Biblioteca** → procurar **Google Drive API** → **Ativar**
 - [ ] **Tela de consentimento OAuth** → tipo **Externo** → preencher nome do app e e-mail
 - [ ] **Escopos** → adicionar `drive.file` (acesso só aos arquivos que o usuário escolher compartilhar com o app —

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { CriarContaForm } from "@/components/criar-conta-form";
 
-export const metadata: Metadata = { title: "Criar conta — Confraria" };
+export const metadata: Metadata = { title: "Criar conta — Oficina Amarela" };
 
 export default function CriarContaPage() {
   return (
@@ -11,7 +11,7 @@ export default function CriarContaPage() {
       <Link href="/" className="mb-8 flex flex-col items-center text-center">
         <Logo className="w-20" />
         <p className="text-gold-grad mt-4 font-[family-name:var(--font-display)] text-2xl font-semibold tracking-[0.2em]">
-          CONFRARIA
+          OFICINA AMARELA
         </p>
       </Link>
 

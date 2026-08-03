@@ -17,7 +17,7 @@ export default async function PortaVozLayout({
           <Link href="/porta-voz" className="flex items-center gap-3">
             <Logo className="w-9" />
             <span className="font-[family-name:var(--font-display)] text-sm font-semibold tracking-[0.24em] text-gold">
-              CONFRARIA
+              OFICINA AMARELA
             </span>
           </Link>
 

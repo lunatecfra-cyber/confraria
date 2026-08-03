@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PAUTAS, ROTULO_FORMATO, type Pauta } from "@/lib/pautas";
 import { lerSessao } from "@/lib/sessao";
 
-export const metadata: Metadata = { title: "Minhas Missões — Confraria" };
+export const metadata: Metadata = { title: "Minhas Missões — Oficina Amarela" };
 
 // mensagem amigável de status, do ponto de vista de quem tá esperando o vídeo
 function mensagemStatus(status: Pauta["status"]): { texto: string; cor: string } {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 
-export const metadata: Metadata = { title: "Termos de Uso — Confraria" };
+export const metadata: Metadata = { title: "Termos de Uso — Oficina Amarela" };
 
 export default function TermosPage() {
   return (
@@ -10,7 +10,7 @@ export default function TermosPage() {
       <Link href="/" className="flex items-center gap-3">
         <Logo className="w-9" />
         <span className="font-[family-name:var(--font-display)] text-sm font-semibold tracking-[0.24em] text-gold">
-          CONFRARIA
+          OFICINA AMARELA
         </span>
       </Link>
 
@@ -29,7 +29,7 @@ export default function TermosPage() {
             1. Quem pode usar
           </h2>
           <p>
-            A Confraria tem três papéis: <b className="text-text">porta-voz</b> (sobe o bruto e descreve
+            A Oficina Amarela tem três papéis: <b className="text-text">porta-voz</b> (sobe o bruto e descreve
             o que quer), <b className="text-text">editor</b> (pega a missão da fila, edita e entrega) e{" "}
             <b className="text-text">inspetor</b> (aprova a entrega ou pede reedição).
           </p>
@@ -53,7 +53,7 @@ export default function TermosPage() {
           </h2>
           <p>
             O vídeo bruto e o material editado continuam sendo de propriedade do porta-voz que o
-            enviou. A Confraria não reivindica nenhum direito sobre esse conteúdo — apenas
+            enviou. A Oficina Amarela não reivindica nenhum direito sobre esse conteúdo — apenas
             intermedia a conexão entre porta-voz e editor.
           </p>
         </section>
@@ -84,7 +84,7 @@ export default function TermosPage() {
             6. Isenção de responsabilidade
           </h2>
           <p>
-            A Confraria não é responsável pelo conteúdo enviado pelos porta-vozes nem pelo material
+            A Oficina Amarela não é responsável pelo conteúdo enviado pelos porta-vozes nem pelo material
             editado pelos editores — a responsabilidade sobre o que é publicado é de quem publica.
           </p>
         </section>
