@@ -15,7 +15,7 @@ export function emailConfigurado() {
 const REMETENTE = "Oficina Amarela <onboarding@resend.dev>";
 
 export async function enviarEmailRecuperacao(destino: string, nome: string, link: string) {
-  await cliente().emails.send({
+  const { error } = await cliente().emails.send({
     from: REMETENTE,
     to: destino,
     subject: "Recuperar sua senha — Oficina Amarela",
@@ -33,4 +33,8 @@ export async function enviarEmailRecuperacao(destino: string, nome: string, link
       </div>
     `,
   });
+
+  // não propaga o erro pro chamador (a rota sempre responde a mesma
+  // mensagem genérica, pra não vazar quais e-mails têm conta) — só loga
+  if (error) console.error("[email] falha ao mandar recuperação:", error);
 }
