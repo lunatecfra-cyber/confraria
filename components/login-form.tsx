@@ -52,8 +52,34 @@ function LoginFormConteudo() {
     router.refresh();
   }
 
+  // atalhos de teste — o bundler remove este bloco no build de produção,
+  // então nem chegam ao HTML que vai pro ar
+  const atalhosDev =
+    process.env.NODE_ENV === "development" ? (
+      <div className="mb-6 rounded-xl border border-dashed border-line p-3">
+        <p className="mb-2 text-center text-[11px] uppercase tracking-[0.1em] text-muted-2">
+          Só em desenvolvimento
+        </p>
+        <div className="flex gap-2">
+          <a
+            href="/api/auth/dev-login?papel=editor"
+            className="btn-ghost grid flex-1 place-items-center !py-2 text-xs"
+          >
+            Entrar como Editor
+          </a>
+          <a
+            href="/api/auth/dev-login?papel=voz"
+            className="btn-ghost grid flex-1 place-items-center !py-2 text-xs"
+          >
+            Entrar como Porta-voz
+          </a>
+        </div>
+      </div>
+    ) : null;
+
   return (
     <div className="w-full max-w-sm">
+      {atalhosDev}
       <a href="/api/auth/google" className="btn-ghost flex items-center justify-center gap-3">
         <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
           <path
