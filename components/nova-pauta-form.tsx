@@ -82,19 +82,33 @@ export function NovaPautaForm() {
     if (passo > 0) setPasso(passo - 1);
   }
 
-  function enviar() {
+  async function enviar() {
     setEnviando(true);
-    // simula o delay de rede que vai existir quando isso gravar no Supabase de verdade
-    setTimeout(() => {
-      setEnviando(false);
-      setEnviado(true);
-    }, 500);
-    // TODO: gravar no Supabase + subir/marcar arquivo no Drive central.
-    // NAO da pra "resolver" isso so com PAUTAS.push() aqui: este componente e Client
-    // ("use client"), e /porta-voz e /editor renderizam como Server Component (sem
-    // "use client") - cada lado tem sua propria copia do modulo lib/pautas.ts, entao
-    // mutar o array no navegador nao aparece no que o servidor renderiza depois.
-    // Ver docs/AUDITORIA-BUGS.md, bug #5, pra detalhe e caminhos de solucao real.
+    // grava no Postgres via API. Antes isto era só um setTimeout fingindo
+    // sucesso — a pauta sumia. O bug #5 da AUDITORIA-BUGS.md (client não
+    // consegue mutar o estado que o Server Component renderiza) se resolve
+    // justamente assim: o dado vai pro banco, não pra memória do navegador.
+    const resp = await fetch("/api/pautas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        titulo: dados.titulo,
+        formato: dados.formato,
+        driveLink: dados.driveLink,
+        tom: dados.tom,
+        cor: dados.cor,
+        fonte: dados.fonte,
+        refs: dados.refs,
+      }),
+    });
+    const corpo = await resp.json().catch(() => null);
+    setEnviando(false);
+
+    if (!resp.ok) {
+      setErro(corpo?.erro ?? "Não deu pra criar a pauta. Tenta de novo.");
+      return;
+    }
+    setEnviado(true);
   }
 
   if (enviado) {

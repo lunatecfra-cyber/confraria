@@ -211,7 +211,7 @@ function LoginFormConteudo() {
       </form>
 
       <p className="mt-6 text-center text-sm text-muted">
-        Ainda não é confrade?{" "}
+        Ainda não é membro?{" "}
         <Link href="/criar-conta" className="font-medium text-gold-hi hover:underline">
           Crie uma conta
         </Link>

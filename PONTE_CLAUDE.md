@@ -1,34 +1,28 @@
 # 📡 Ponte de Comunicação: Antigravity ↔ Claude
 
 Este arquivo é um canal de instrução automática entre os agentes de IA operando no workspace de **Vitor França**.
-O Antigravity (Cérebro Maior / Coordenador) registra aqui diretrizes, mudanças globais e comandos para o Claude ler e aplicar em suas sessões.
+O Antigravity (Cérebro Maior) registra aqui diretrizes, mudanças globais e comandos para o Claude ler e aplicar em suas sessões.
 
 ---
 
-## 🟢 Mensagem Atual [03/08/2026 - 01:21]
+## 🟢 Mensagem Atual [04/08/2026 - 00:30]
 **De:** Antigravity (Cérebro Maior)  
 **Para:** Claude (Agente Operacional)  
-**Status:** ATIVO — LEIA E RECONHEÇA IMEDIATAMENTE  
-**Assunto:** Rebrand Confraria ➔ Oficina Amarela  
+**Status:** ATIVO — LEIA E APLIQUE  
+**Assunto:** Correções de Rotas e Persistência de Missões
 
-### Diretrizes de Operação na Plataforma
-1. **O projeto foi renomeado de "Confraria" para "Oficina Amarela".**
-   - O repositório e pasta local são agora `oficina-amarela`.
-   - O campo `name` no `package.json` foi atualizado para `oficina-amarela`.
-   - **Textos de Interface (UI/JSX/TSX), títulos de abas e metadados:** usar exclusivamente **Oficina Amarela** (ou **OFICINA AMARELA** em caixa alta).
-   - **Documentação (`docs/*.md`):** todos os documentos já foram atualizados para refletir o novo nome.
+### Tarefas de Correção:
+1. **Criar Rota Inexistente:**
+   - Crie o arquivo `app/perfil/editar/page.tsx` (interface de edição de perfil do editor) para corrigir o erro 404 ao clicar em "Editar perfil" na tela do editor.
 
-2. **O QUE VOCÊ NUNCA DEVE TOCAR (Exclusões Propositais):**
-   - Os identificadores técnicos originais contendo `confraria` **permanecem inalterados propositalmente**:
-     - Cookie de sessão: `confraria_sessao`
-     - Chaves no localStorage: `confraria_perfil_candidato` e `confraria:disponibilidade`
-     - Variáveis globais/internas do banco de dados (ex: `__confrariaSql`).
-     - Não tente reescrever, refatorar ou "limpar" essas chaves no código.
+2. **Persistência de Novas Missões:**
+   - Corrija o sumiço das novas missões criadas em `/porta-voz/nova-pauta`.
+   - Como o Supabase real (F6) ainda não está ativo, implemente armazenamento temporário via `localStorage` compartilhado.
+   - Atualize `components/nova-pauta-form.tsx` (para salvar), `components/fila-pautas.tsx` (fila do editor) e `app/porta-voz/page.tsx` (fila do porta-voz) para lerem as pautas do `localStorage` de forma integrada.
 
-3. **Modo de Trabalho Exigido por Vitor França:**
-   - Sem saudações ou enrolação ("alói", explicações longas).
-   - Modo direto, execuções rápidas e objetivas.
-   - Siga estritamente as especificações registradas no `docs/SPEC.md`.
+3. **Rebrand Residual:**
+   - Altere os textos visíveis "Já é confrade?" e "Ainda não é confrade?" nas telas de login, cadastro e home para referências a "membro" ou "parceiro" da Oficina Amarela.
+   - Mantenha as chaves técnicas (`confraria_sessao`, `confraria:disponibilidade`, etc.) intocadas.
 
 ---
-*Instrução ao Claude:* Sempre que abrir esta conversa ou receber um check-in de status, leia este arquivo, confirme o recebimento de forma ultracurtinha (ex: "Ponte lida. Diretrizes de Oficina Amarela aplicadas.") e prossiga direto com a tarefa solicitada.
+*Instrução ao Claude:* Confirme o recebimento ("Ponte lida. Iniciando correções de rota e persistência.") e execute as correções acima.

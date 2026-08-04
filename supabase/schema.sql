@@ -35,3 +35,35 @@ CREATE TABLE IF NOT EXISTS tentativas_login (
   primeira_em TIMESTAMPTZ NOT NULL DEFAULT now(),
   travado_ate TIMESTAMPTZ
 );
+
+-- Campos de perfil que o próprio usuário edita (serve editor e porta-voz).
+-- Ficam em users mesmo: são 1-pra-1 com a conta, não justificam tabela nova.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS headline TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS localizacao TEXT;
+
+-- Pautas: a demanda que o porta-voz cria e o editor pega.
+-- Fica no banco (e não no localStorage) porque quem cria e quem pega são
+-- PESSOAS DIFERENTES, em navegadores diferentes — localStorage nunca é
+-- compartilhado entre usuários.
+CREATE TABLE IF NOT EXISTS pautas (
+  id SERIAL PRIMARY KEY,
+  porta_voz_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  titulo TEXT NOT NULL,
+  formato TEXT NOT NULL CHECK (formato IN ('short','longo')),
+  brief_tom TEXT,
+  brief_cor TEXT,
+  brief_fonte TEXT,
+  brief_refs TEXT,
+  drive_link TEXT,
+  status TEXT NOT NULL DEFAULT 'disponivel'
+    CHECK (status IN ('disponivel','reservada','em_revisao','reedicao','aprovada')),
+  reservada_por_id INT REFERENCES users(id) ON DELETE SET NULL,
+  reservada_ate TIMESTAMPTZ,
+  entrega_link TEXT,
+  notas_inspetor TEXT,
+  criada_em TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pautas_status ON pautas (status);
+CREATE INDEX IF NOT EXISTS idx_pautas_porta_voz ON pautas (porta_voz_id);

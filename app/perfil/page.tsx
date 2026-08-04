@@ -10,14 +10,28 @@ import { Stat } from "@/components/stat";
 import { Card } from "@/components/card";
 import { CelulaDisponibilidade } from "@/components/disponibilidade-cell";
 import { iniciais } from "@/lib/candidatos";
+import { lerPerfilEditavel } from "@/lib/perfil-db";
 import { exigirSessao } from "@/lib/sessao-servidor";
 
 export const metadata: Metadata = { title: "Meu Perfil — Oficina Amarela" };
 
-export default async function PerfilPage() {
-  await exigirSessao();
+export const dynamic = "force-dynamic";
 
-  const p = PERFIL_EDITOR;
+export default async function PerfilPage() {
+  const sessao = await exigirSessao();
+  const salvo = await lerPerfilEditavel(sessao.id);
+
+  // nome/apelido vêm da conta de verdade; headline/local/bio do que a pessoa
+  // editou. O resto (stats, portfólio, conquistas) ainda é demonstração —
+  // só passa a ser real quando as entregas existirem de fato.
+  const p = {
+    ...PERFIL_EDITOR,
+    nome: sessao.nome,
+    apelido: sessao.apelido,
+    headline: salvo?.headline ?? PERFIL_EDITOR.headline,
+    local: salvo?.localizacao ?? PERFIL_EDITOR.local,
+    bio: salvo?.bio ?? PERFIL_EDITOR.bio,
+  };
   const nivel = progressoNivel(p.entregues);
   const livres = DISPONIBILIDADE_PADRAO.flat().filter(Boolean).length;
 

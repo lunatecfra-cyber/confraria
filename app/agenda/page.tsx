@@ -4,7 +4,9 @@ import { AgendaView } from "@/components/agenda-view";
 
 export const metadata: Metadata = { title: "Agenda — Oficina Amarela" };
 
-export default function AgendaPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AgendaPage() {
   return (
     <>
       <AppHeader />

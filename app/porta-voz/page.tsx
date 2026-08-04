@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PAUTAS, ROTULO_FORMATO, type Pauta } from "@/lib/pautas";
+import { pautasDisponiveis, pautasDoPortaVoz } from "@/lib/pautas-db";
 import { lerSessao } from "@/lib/sessao-servidor";
+
+// esta tela precisa refletir a pauta que acabou de ser criada, então não pode
+// servir versão em cache
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Minhas Missões — Oficina Amarela" };
 
@@ -23,10 +28,19 @@ function mensagemStatus(status: Pauta["status"]): { texto: string; cor: string }
 
 export default async function PortaVozHome() {
   const sessao = await lerSessao();
-  const minhas = PAUTAS.filter((p) => p.portaVoz === sessao?.nome);
+
+  // pautas de verdade (banco) + as de demonstração que batem com o nome —
+  // as fake existem só pra tela não ficar vazia numa conta nova
+  const [reaisMinhas, reaisDisponiveis] = await Promise.all([
+    sessao ? pautasDoPortaVoz(sessao.id) : Promise.resolve([]),
+    pautasDisponiveis(),
+  ]);
+
+  const demoMinhas = PAUTAS.filter((p) => p.portaVoz === sessao?.nome);
+  const minhas = [...reaisMinhas, ...demoMinhas];
 
   // fila compartilhada: todas as pautas disponíveis (de todo mundo), ordenadas por criação
-  const filaGeral = PAUTAS.filter((p) => p.status === "disponivel").sort(
+  const filaGeral = [...reaisDisponiveis, ...PAUTAS.filter((p) => p.status === "disponivel")].sort(
     (a, b) => a.criadaEm.localeCompare(b.criadaEm)
   );
 

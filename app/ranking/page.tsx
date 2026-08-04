@@ -5,7 +5,9 @@ import { EDITORES } from "@/lib/perfil";
 
 export const metadata: Metadata = { title: "Ranking — Oficina Amarela" };
 
-export default function RankingPage() {
+export const dynamic = "force-dynamic";
+
+export default async function RankingPage() {
   const ordenado = [...EDITORES].sort((a, b) => b.reputacao - a.reputacao);
 
   return (

@@ -60,8 +60,10 @@ function restante(ate: string) {
   return h > 0 ? `${h}h ${m}min restantes` : `${m}min restantes`;
 }
 
-export function FilaPautas() {
-  const [pautas, setPautas] = useState<Pauta[]>(PAUTAS);
+export function FilaPautas({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
+  // pautas criadas de verdade pelos porta-vozes (vindas do banco) entram na
+  // frente; as de PAUTAS são demonstração, pra fila não ficar vazia
+  const [pautas, setPautas] = useState<Pauta[]>([...pautasReais, ...PAUTAS]);
   const [agora, setAgora] = useState<number | null>(null);
   const [linkEntrega, setLinkEntrega] = useState("");
   const [aviso, setAviso] = useState("");

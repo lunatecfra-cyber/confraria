@@ -89,7 +89,7 @@ export default function Home() {
           className="reveal mt-10 text-center text-sm text-muted"
           style={{ "--reveal-delay": "580ms" } as React.CSSProperties}
         >
-          Já é confrade?{" "}
+          Já é membro?{" "}
           <Link href="/login" className="font-medium text-gold-hi hover:underline">
             Faça login
           </Link>

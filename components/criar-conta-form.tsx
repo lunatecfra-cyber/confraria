@@ -213,7 +213,7 @@ export function CriarContaForm() {
       </form>
 
       <p className="mt-6 text-center text-sm text-muted">
-        Já é confrade?{" "}
+        Já é membro?{" "}
         <Link href="/login" className="font-medium text-gold-hi hover:underline">
           Entrar
         </Link>

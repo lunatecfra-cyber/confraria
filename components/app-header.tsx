@@ -2,9 +2,13 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { BotaoSair } from "@/components/botao-sair";
 import { EDITOR_ATUAL } from "@/lib/pautas";
+import { lerSessao } from "@/lib/sessao-servidor";
 
-export function AppHeader() {
-  const editor = EDITOR_ATUAL;
+export async function AppHeader() {
+  const sessao = await lerSessao();
+  // apelido vem da conta real; nível/entregues/nota ainda são demonstração
+  // (só viram reais quando existirem entregas de verdade)
+  const editor = { ...EDITOR_ATUAL, apelido: sessao?.apelido ?? EDITOR_ATUAL.apelido };
   return (
     <header className="border-b border-line-soft">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
