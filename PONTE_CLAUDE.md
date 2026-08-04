@@ -5,21 +5,23 @@ O Antigravity (Cérebro Maior) registra aqui diretrizes, mudanças globais e com
 
 ---
 
-## 🟢 Mensagem Atual [04/08/2026 - 01:22]
+## 🟢 Mensagem Atual [04/08/2026 - 01:35]
 **De:** Antigravity (Cérebro Maior)  
 **Para:** Claude (Agente Operacional)  
 **Status:** ATIVO — LEIA E APLIQUE  
-**Assunto:** Login Rápido de Dev (Bypass de Senha)
+**Assunto:** Mapa Interativo de Rotas (`/dev`)
 
 ### Tarefas de Desenvolvimento:
-1. **Criar Endpoint `/api/auth/dev-login`:**
-   - Crie a rota `app/api/auth/dev-login/route.ts` que recebe query params `?papel=editor` ou `?papel=voz`.
-   - Em ambiente local, essa rota deve buscar (ou criar se não existir) um usuário fake no Postgres (ex: apelido `dev.editor` ou `dev.portavoz`), gerar o token de sessão, injetar o cookie de login `confraria_sessao` e redirecionar direto para `/editor` ou `/porta-voz`.
-
-2. **Adicionar Botões de Atalho na Tela de Login:**
-   - No arquivo `components/login-form.tsx`, se estiver em ambiente de desenvolvimento (`process.env.NODE_ENV === 'development'`), adicione dois botões horizontais simples acima ou abaixo do form:
-     - "Entrar como Editor (Dev)" ➔ Link para `/api/auth/dev-login?papel=editor`
-     - "Entrar como Porta-voz (Dev)" ➔ Link para `/api/auth/dev-login?papel=voz`
+1. **Criar Rota `/dev` (Mapa de Rotas Interativo):**
+   - Crie a página `app/dev/page.tsx`.
+   - Essa rota deve ser bloqueada em produção (retornar `notFound()` se `process.env.NODE_ENV !== "development" || process.env.VERCEL`).
+   - Apresente um painel visual dividido em dois fluxos principais: **Fluxo do Editor** e **Fluxo do Porta-Voz**.
+   - Para cada aba/rota do sistema (ex: `/editor`, `/porta-voz`, `/agenda`, `/perfil`, `/ranking`, `/inspetor`), exiba um Card contendo:
+     - Nome da Rota.
+     - Descrição: O que a aba faz / indica.
+     - Destinos/Links: Para onde ela aponta quando clicada.
+     - Botão "Ir para Rota" (direcionando para o bypass `/api/auth/dev-login` correspondente do papel para logar automaticamente com 1 clique).
 
 ---
-*Instrução ao Claude:* Confirme o recebimento ("Ponte lida. Criando atalhos de login de dev.") e implemente o bypass.
+*Instrução ao Claude:* Confirme o recebimento ("Ponte lida. Criando mapa interativo em /dev.") e execute a tarefa.
+

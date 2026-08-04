@@ -103,3 +103,170 @@ export async function pautasDisponiveis(): Promise<Pauta[]> {
   `;
   return (linhas as unknown as LinhaPauta[]).map(paraPauta);
 }
+
+/** A pauta que este editor tem em mãos agora (regra: 1 por vez). */
+export async function pautaReservadaPor(editorId: number): Promise<Pauta | null> {
+  const linhas = await sql`
+    ${SELECT_BASE}
+    WHERE p.reservada_por_id = ${editorId}
+      AND p.status IN ('reservada','em_revisao','reedicao')
+    LIMIT 1
+  `;
+  const l = (linhas as unknown as LinhaPauta[])[0];
+  return l ? paraPauta(l) : null;
+}
+
+/** Entregas já aprovadas de um editor — é o portfólio real dele. */
+export async function entregasAprovadas(editorId: number): Promise<Pauta[]> {
+  const linhas = await sql`
+    ${SELECT_BASE}
+    WHERE p.reservada_por_id = ${editorId} AND p.status = 'aprovada'
+    ORDER BY p.criada_em DESC
+  `;
+  return (linhas as unknown as LinhaPauta[]).map(paraPauta);
+}
+
+/** Tudo aguardando o controle de qualidade. */
+export async function pautasEmRevisao(): Promise<Pauta[]> {
+  const linhas = await sql`
+    ${SELECT_BASE} WHERE p.status = 'em_revisao' ORDER BY p.criada_em ASC
+  `;
+  return (linhas as unknown as LinhaPauta[]).map(paraPauta);
+}
+
+const PRAZO_HORAS = 24;
+
+/**
+ * Reserva a pauta pro editor.
+ *
+ * O UPDATE só casa se a pauta ainda estiver 'disponivel'. Isso é a trava
+ * contra dois editores pegarem a mesma pauta ao mesmo tempo: o banco
+ * serializa, o segundo não encontra linha e recebe o erro.
+ */
+export async function reservarPauta(
+  pautaId: number,
+  editorId: number
+): Promise<{ ok: true } | { ok: false; erro: string }> {
+  const [travado] = await sql`
+    SELECT travado_reservas_ate FROM users
+    WHERE id = ${editorId} AND travado_reservas_ate > now()
+  `;
+  if (travado) return { ok: false, erro: "Você está temporariamente sem poder reservar." };
+
+  const jaTem = await pautaReservadaPor(editorId);
+  if (jaTem) {
+    return { ok: false, erro: "Você já tem uma pauta em mãos. Entregue antes de pegar outra." };
+  }
+
+  const linhas = await sql`
+    UPDATE pautas
+    SET status = 'reservada',
+        reservada_por_id = ${editorId},
+        reservada_ate = now() + (${PRAZO_HORAS} || ' hours')::interval
+    WHERE id = ${pautaId} AND status = 'disponivel'
+    RETURNING id
+  `;
+  if (linhas.length === 0) {
+    return { ok: false, erro: "Essa pauta já foi pega por outro editor." };
+  }
+  return { ok: true };
+}
+
+/** Devolve a pauta pra fila. */
+export async function cancelarReserva(
+  pautaId: number,
+  editorId: number
+): Promise<{ ok: true } | { ok: false; erro: string }> {
+  const linhas = await sql`
+    UPDATE pautas
+    SET status = 'disponivel', reservada_por_id = NULL, reservada_ate = NULL
+    WHERE id = ${pautaId} AND reservada_por_id = ${editorId}
+      AND status IN ('reservada','reedicao')
+    RETURNING id
+  `;
+  if (linhas.length === 0) return { ok: false, erro: "Essa pauta não está com você." };
+  return { ok: true };
+}
+
+/** Editor manda o link do editado; vai pro controle de qualidade. */
+export async function entregarPauta(
+  pautaId: number,
+  editorId: number,
+  link: string
+): Promise<{ ok: true } | { ok: false; erro: string }> {
+  if (!link.trim()) return { ok: false, erro: "Cole o link do vídeo editado." };
+
+  const linhas = await sql`
+    UPDATE pautas
+    SET status = 'em_revisao', entrega_link = ${link.trim()}, notas_inspetor = NULL
+    WHERE id = ${pautaId} AND reservada_por_id = ${editorId}
+      AND status IN ('reservada','reedicao')
+    RETURNING id
+  `;
+  if (linhas.length === 0) return { ok: false, erro: "Essa pauta não está com você." };
+  return { ok: true };
+}
+
+/**
+ * Aprova a entrega. Este é o ponto em que os números do editor deixam de ser
+ * enfeite: entregues sobe (e com ele o nível, que é coluna gerada), a nota
+ * média é recalculada e o streak avança.
+ */
+export async function aprovarPauta(
+  pautaId: number,
+  nota?: number,
+  comentario?: string
+): Promise<{ ok: true } | { ok: false; erro: string }> {
+  const [pauta] = await sql`
+    SELECT reservada_por_id FROM pautas WHERE id = ${pautaId} AND status = 'em_revisao'
+  `;
+  if (!pauta?.reservada_por_id) return { ok: false, erro: "Essa pauta não está em revisão." };
+  const editorId = pauta.reservada_por_id as number;
+
+  if (nota !== undefined && (nota < 1 || nota > 5)) {
+    return { ok: false, erro: "A nota vai de 1 a 5." };
+  }
+
+  await sql`UPDATE pautas SET status = 'aprovada', notas_inspetor = NULL WHERE id = ${pautaId}`;
+
+  if (nota !== undefined) {
+    await sql`
+      INSERT INTO avaliacoes (pauta_id, editor_id, nota, comentario)
+      VALUES (${pautaId}, ${editorId}, ${nota}, ${comentario?.trim() || null})
+    `;
+  }
+
+  // entregues += 1 -> a coluna gerada "nivel" se atualiza sozinha
+  await sql`
+    UPDATE users
+    SET entregues = entregues + 1,
+        reputacao = reputacao + 25,
+        streak = streak + 1
+    WHERE id = ${editorId}
+  `;
+
+  // nota do editor = média das avaliações reais dele
+  await sql`
+    UPDATE users u
+    SET nota = (SELECT ROUND(AVG(a.nota)::numeric, 2) FROM avaliacoes a WHERE a.editor_id = u.id)
+    WHERE u.id = ${editorId}
+  `;
+
+  return { ok: true };
+}
+
+/** Controle de qualidade devolve pro editor com uma observação. */
+export async function pedirReedicao(
+  pautaId: number,
+  notas: string
+): Promise<{ ok: true } | { ok: false; erro: string }> {
+  if (!notas.trim()) return { ok: false, erro: "Escreva o que precisa mudar." };
+
+  const linhas = await sql`
+    UPDATE pautas SET status = 'reedicao', notas_inspetor = ${notas.trim()}
+    WHERE id = ${pautaId} AND status = 'em_revisao'
+    RETURNING id
+  `;
+  if (linhas.length === 0) return { ok: false, erro: "Essa pauta não está em revisão." };
+  return { ok: true };
+}

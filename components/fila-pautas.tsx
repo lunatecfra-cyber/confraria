@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   PAUTAS,
@@ -10,20 +11,26 @@ import {
 } from "@/lib/pautas";
 import { getCandidato, iniciais } from "@/lib/candidatos";
 import { LocalProximidade } from "@/components/local-proximidade";
-import { PERFIL_EDITOR } from "@/lib/perfil";
 
 const PRAZO_HORAS = 24;
 
-// sistema de match: compatibilidade do editor atual com a pauta, baseado no portfólio dele
-// (já editou pra esse porta-voz? já editou nesse formato?)
-function pontosMatch(p: Pauta): number {
-  const jaEditouPortaVoz = PERFIL_EDITOR.portfolio.some((v) => v.portaVoz === p.portaVoz);
-  const jaEditouFormato = PERFIL_EDITOR.portfolio.some((v) => v.formato === p.formato);
-  return (jaEditouPortaVoz ? 2 : 0) + (jaEditouFormato ? 1 : 0);
+/**
+ * Match: compatibilidade do editor com a pauta, medida pelo que ele JÁ
+ * ENTREGOU E FOI APROVADO (vem do banco, via prop `entregas`).
+ *
+ * Antes isso comparava com o portfólio fake do "jr.eneias", então o match
+ * era o mesmo pra qualquer editor — decorativo. Agora um editor novo vê
+ * "match novo" em tudo, e o match sobe conforme ele trabalha de verdade.
+ */
+function pontosMatch(p: Pauta, entregas: Pauta[]): number {
+  const jaEditouPortaVoz = entregas.some((v) => v.portaVoz === p.portaVoz);
+  const jaEditouFormato = entregas.some((v) => v.formato === p.formato);
+  const jaFezEsseTom = entregas.some((v) => v.brief.tom && v.brief.tom === p.brief.tom);
+  return (jaEditouPortaVoz ? 2 : 0) + (jaEditouFormato ? 1 : 0) + (jaFezEsseTom ? 1 : 0);
 }
 
-function calcularMatch(p: Pauta): { rotulo: string; cor: string } {
-  const pontos = pontosMatch(p);
+function calcularMatch(p: Pauta, entregas: Pauta[]): { rotulo: string; cor: string } {
+  const pontos = pontosMatch(p, entregas);
   if (pontos >= 2) return { rotulo: "Match alto", cor: "border-ok/40 bg-ok/[0.08] text-ok" };
   if (pontos === 1) return { rotulo: "Match médio", cor: "border-gold-lo/40 bg-gold/[0.07] text-gold-hi" };
   return { rotulo: "Match novo", cor: "border-line bg-surface-2 text-muted" };
@@ -60,10 +67,26 @@ function restante(ate: string) {
   return h > 0 ? `${h}h ${m}min restantes` : `${m}min restantes`;
 }
 
-export function FilaPautas({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
+export function FilaPautas({
+  pautasReais = [],
+  minhaAtual = null,
+  entregas = [],
+}: {
+  pautasReais?: Pauta[];
+  /** pauta que o editor já tem em mãos (vem do banco) */
+  minhaAtual?: Pauta | null;
+  /** entregas aprovadas do editor — é o que alimenta o match */
+  entregas?: Pauta[];
+}) {
+  const router = useRouter();
   // pautas criadas de verdade pelos porta-vozes (vindas do banco) entram na
   // frente; as de PAUTAS são demonstração, pra fila não ficar vazia
-  const [pautas, setPautas] = useState<Pauta[]>([...pautasReais, ...PAUTAS]);
+  const [pautas, setPautas] = useState<Pauta[]>(() => {
+    const reais = minhaAtual
+      ? [{ ...minhaAtual, status: "minha" as const }, ...pautasReais]
+      : pautasReais;
+    return [...reais, ...PAUTAS];
+  });
   const [agora, setAgora] = useState<number | null>(null);
   const [linkEntrega, setLinkEntrega] = useState("");
   const [aviso, setAviso] = useState("");
@@ -82,32 +105,47 @@ export function FilaPautas({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
   const disponiveis = pautas.filter((p) => p.status !== "minha");
   const baralho = pautas
     .filter((p) => p.status === "disponivel")
-    .sort((a, b) => pontosMatch(b) - pontosMatch(a));
+    .sort((a, b) => pontosMatch(b, entregas) - pontosMatch(a, entregas));
   const cartaAtual = baralho.length ? baralho[deckIndex % baralho.length] : null;
 
-  function reservar(id: string) {
+  // as pautas de demonstração (id "p1", "p2"...) não existem no banco; só as
+  // reais, criadas por um porta-voz, têm id "db-N"
+  const ehPautaReal = (id: string) => id.startsWith("db-");
+
+  /** Manda a transição pro banco. Devolve o erro pra tela quando falha. */
+  async function chamarApi(id: string, corpo: Record<string, unknown>): Promise<boolean> {
+    const resp = await fetch(`/api/pautas/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(corpo),
+    });
+    if (!resp.ok) {
+      const dados = await resp.json().catch(() => null);
+      setAviso(dados?.erro ?? "Não deu pra concluir. Tenta de novo.");
+      return false;
+    }
+    return true;
+  }
+
+  async function reservar(id: string) {
     if (minha) {
       setAviso("Você já tem uma missão reservada. Entregue ou cancele antes de pegar outra.");
       return;
     }
     setAviso("");
     setProcessando(id);
-    const ate = new Date(Date.now() + PRAZO_HORAS * 3_600_000).toISOString();
-    setTimeout(() => {
-      setPautas((lista) =>
-        lista.map((p) =>
-          p.id === id
-            ? {
-                ...p,
-                status: "minha",
-                reservadaAte: ate,
-                driveLink: "https://drive.google.com/file/d/EXEMPLO/view",
-              }
-            : p
-        )
-      );
+
+    if (ehPautaReal(id) && !(await chamarApi(id, { acao: "reservar" }))) {
       setProcessando(null);
-    }, 400);
+      return;
+    }
+
+    const ate = new Date(Date.now() + PRAZO_HORAS * 3_600_000).toISOString();
+    setPautas((lista) =>
+      lista.map((p) => (p.id === id ? { ...p, status: "minha", reservadaAte: ate } : p))
+    );
+    setProcessando(null);
+    router.refresh();
   }
 
   function sortear() {
@@ -124,22 +162,27 @@ export function FilaPautas({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
     setSorteada(livres[Math.floor(Math.random() * livres.length)]);
   }
 
-  function cancelar(id: string) {
+  async function cancelar(id: string) {
     setProcessando(id);
-    setTimeout(() => {
-      setLinkEntrega("");
-      setPautas((lista) =>
-        lista.map((p) =>
-          p.id === id
-            ? { ...p, status: "disponivel", reservadaAte: undefined, driveLink: undefined }
-            : p
-        )
-      );
+
+    if (ehPautaReal(id) && !(await chamarApi(id, { acao: "cancelar" }))) {
       setProcessando(null);
-    }, 400);
+      return;
+    }
+
+    setLinkEntrega("");
+    setPautas((lista) =>
+      lista.map((p) =>
+        p.id === id
+          ? { ...p, status: "disponivel", reservadaAte: undefined, driveLink: undefined }
+          : p
+      )
+    );
+    setProcessando(null);
+    router.refresh();
   }
 
-  function entregar(id: string) {
+  async function entregar(id: string) {
     if (!linkEntrega.trim()) {
       setAviso("Cole o link do vídeo pronto antes de confirmar.");
       return;
@@ -147,15 +190,18 @@ export function FilaPautas({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
     setAviso("");
     setProcessando(id);
     const link = linkEntrega.trim();
-    setTimeout(() => {
-      setLinkEntrega("");
-      setPautas((lista) =>
-        lista.map((p) =>
-          p.id === id ? { ...p, status: "em_revisao", entregaLink: link } : p
-        )
-      );
+
+    if (ehPautaReal(id) && !(await chamarApi(id, { acao: "entregar", link }))) {
       setProcessando(null);
-    }, 400);
+      return;
+    }
+
+    setLinkEntrega("");
+    setPautas((lista) =>
+      lista.map((p) => (p.id === id ? { ...p, status: "em_revisao", entregaLink: link } : p))
+    );
+    setProcessando(null);
+    router.refresh();
   }
 
   return (
@@ -328,6 +374,7 @@ export function FilaPautas({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
               processando={processando === cartaAtual.id}
               onPassar={() => setDeckIndex((i) => i + 1)}
               onReservar={() => reservar(cartaAtual.id)}
+              entregas={entregas}
             />
           ) : (
             <div className="w-full max-w-lg rounded-2xl border border-dashed border-line p-12 text-center text-sm text-muted">
@@ -345,7 +392,7 @@ export function FilaPautas({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
         {disponiveis.map((p) => {
           const livre = p.status === "disponivel";
           const cand = getCandidato(p.portaVoz);
-          const match = calcularMatch(p);
+          const match = calcularMatch(p, entregas);
           return (
             <li
               key={p.id}
@@ -444,15 +491,17 @@ function CartaBaralho({
   processando,
   onPassar,
   onReservar,
+  entregas = [],
 }: {
   pauta: Pauta;
   minha: boolean;
   processando: boolean;
   onPassar: () => void;
   onReservar: () => void;
+  entregas?: Pauta[];
 }) {
   const cand = getCandidato(pauta.portaVoz);
-  const match = calcularMatch(pauta);
+  const match = calcularMatch(pauta, entregas);
 
   return (
     <div className="w-full max-w-lg rounded-2xl border border-gold-lo/40 bg-gradient-to-b from-gold/[0.06] to-surface p-6 lg:p-7">

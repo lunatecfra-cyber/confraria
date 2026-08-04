@@ -1,31 +1,58 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PAUTAS, ROTULO_FORMATO, type Pauta } from "@/lib/pautas";
 import { getCandidato, iniciais } from "@/lib/candidatos";
 import { LocalProximidade } from "@/components/local-proximidade";
 import { Selo, Chip } from "@/components/fila-pautas";
 
-export function FilaInspetor() {
-  const [pautas, setPautas] = useState<Pauta[]>(PAUTAS);
+export function FilaInspetor({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
+  const router = useRouter();
+  const [pautas, setPautas] = useState<Pauta[]>([...pautasReais, ...PAUTAS]);
+  const [erro, setErro] = useState("");
 
   const emRevisao = pautas.filter((p) => p.status === "em_revisao");
 
-  function aprovar(id: string) {
-    setPautas((lista) =>
-      lista.map((p) =>
-        p.id === id ? { ...p, status: "aprovada", notasInspetor: undefined } : p
-      )
-    );
+  const ehPautaReal = (id: string) => id.startsWith("db-");
+
+  async function chamarApi(id: string, corpo: Record<string, unknown>): Promise<boolean> {
+    const resp = await fetch(`/api/pautas/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(corpo),
+    });
+    if (!resp.ok) {
+      const dados = await resp.json().catch(() => null);
+      setErro(dados?.erro ?? "Não deu pra concluir. Tenta de novo.");
+      return false;
+    }
+    setErro("");
+    return true;
   }
 
-  function pedirReedicao(id: string, nota: string) {
+  /**
+   * Aprovar é o que faz os números do editor mexerem: entregues sobe (e o
+   * nível junto), a nota média é recalculada e o streak avança — tudo no
+   * banco, não na tela.
+   */
+  async function aprovar(id: string, nota?: number) {
+    if (ehPautaReal(id) && !(await chamarApi(id, { acao: "aprovar", nota }))) return;
+
     setPautas((lista) =>
-      lista.map((p) =>
-        p.id === id ? { ...p, status: "reedicao", notasInspetor: nota } : p
-      )
+      lista.map((p) => (p.id === id ? { ...p, status: "aprovada", notasInspetor: undefined } : p))
     );
+    router.refresh();
+  }
+
+  async function pedirReedicao(id: string, nota: string) {
+    if (ehPautaReal(id) && !(await chamarApi(id, { acao: "reedicao", notas: nota }))) return;
+
+    setPautas((lista) =>
+      lista.map((p) => (p.id === id ? { ...p, status: "reedicao", notasInspetor: nota } : p))
+    );
+    router.refresh();
   }
 
   return (
@@ -42,6 +69,12 @@ export function FilaInspetor() {
         <p className="text-sm text-muted">{emRevisao.length} aguardando</p>
       </div>
 
+      {erro && (
+        <p role="alert" className="mt-4 text-sm text-danger">
+          {erro}
+        </p>
+      )}
+
       {emRevisao.length === 0 ? (
         <div className="mt-10 rounded-2xl border border-line-soft bg-surface/40 p-10 text-center text-sm text-muted">
           Nada pra revisar agora.
@@ -52,7 +85,7 @@ export function FilaInspetor() {
             <CardRevisao
               key={p.id}
               pauta={p}
-              onAprovar={() => aprovar(p.id)}
+              onAprovar={(estrelas) => aprovar(p.id, estrelas)}
               onPedirReedicao={(nota) => pedirReedicao(p.id, nota)}
             />
           ))}
@@ -68,11 +101,12 @@ function CardRevisao({
   onPedirReedicao,
 }: {
   pauta: Pauta;
-  onAprovar: () => void;
+  onAprovar: (estrelas?: number) => void;
   onPedirReedicao: (nota: string) => void;
 }) {
   const [abrindoReedicao, setAbrindoReedicao] = useState(false);
   const [nota, setNota] = useState("");
+  const [estrelas, setEstrelas] = useState<number | undefined>(undefined);
   const [aviso, setAviso] = useState("");
   const cand = getCandidato(p.portaVoz);
 
@@ -147,7 +181,23 @@ function CardRevisao({
 
         {!abrindoReedicao && (
           <div className="flex flex-none items-center gap-2 lg:w-56 lg:flex-col lg:items-stretch">
-            <button className="btn-gold whitespace-nowrap" onClick={onAprovar}>
+            <div className="flex items-center justify-center gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`Dar nota ${n}`}
+                  aria-pressed={estrelas === n}
+                  onClick={() => setEstrelas(n)}
+                  className={`text-lg leading-none transition-opacity ${
+                    estrelas && n <= estrelas ? "opacity-100" : "opacity-30 hover:opacity-60"
+                  }`}
+                >
+                  ⭐
+                </button>
+              ))}
+            </div>
+            <button className="btn-gold whitespace-nowrap" onClick={() => onAprovar(estrelas)}>
               Aprovar
             </button>
             <button
