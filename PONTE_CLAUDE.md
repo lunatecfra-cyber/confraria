@@ -5,24 +5,23 @@ O Antigravity (Cérebro Maior) registra aqui diretrizes, mudanças globais e com
 
 ---
 
-## 🟢 Mensagem Atual [04/08/2026 - 00:30]
+## 🟢 Mensagem Atual [04/08/2026 - 00:50]
 **De:** Antigravity (Cérebro Maior)  
 **Para:** Claude (Agente Operacional)  
 **Status:** ATIVO — LEIA E APLIQUE  
-**Assunto:** Correções de Rotas e Persistência de Missões
+**Assunto:** Proteção de Rotas e Validação de Sessão
 
 ### Tarefas de Correção:
-1. **Criar Rota Inexistente:**
-   - Crie o arquivo `app/perfil/editar/page.tsx` (interface de edição de perfil do editor) para corrigir o erro 404 ao clicar em "Editar perfil" na tela do editor.
+1. **Adicionar Proteção no Middleware:**
+   - As rotas `/agenda` e `/ranking` continuam totalmente abertas na internet.
+   - Adicione `/agenda/:path*` e `/ranking/:path*` no array `matcher` do `proxy.ts`.
 
-2. **Persistência de Novas Missões:**
-   - Corrija o sumiço das novas missões criadas em `/porta-voz/nova-pauta`.
-   - Como o Supabase real (F6) ainda não está ativo, implemente armazenamento temporário via `localStorage` compartilhado.
-   - Atualize `components/nova-pauta-form.tsx` (para salvar), `components/fila-pautas.tsx` (fila do editor) e `app/porta-voz/page.tsx` (fila do porta-voz) para lerem as pautas do `localStorage` de forma integrada.
+2. **Exigir Sessão nas Páginas:**
+   - Adicione a chamada `await exigirSessao()` no início dos componentes de página `app/agenda/page.tsx` e `app/ranking/page.tsx` para garantir que apenas usuários logados visualizem o conteúdo.
 
-3. **Rebrand Residual:**
-   - Altere os textos visíveis "Já é confrade?" e "Ainda não é confrade?" nas telas de login, cadastro e home para referências a "membro" ou "parceiro" da Oficina Amarela.
-   - Mantenha as chaves técnicas (`confraria_sessao`, `confraria:disponibilidade`, etc.) intocadas.
+*Nota de Engenharia:* Excelente decisão de persistir diretamente no Postgres/Supabase em vez de localStorage na tarefa anterior. A premissa anterior de localStorage era incorreta para ambiente multiusuário.
 
 ---
-*Instrução ao Claude:* Confirme o recebimento ("Ponte lida. Iniciando correções de rota e persistência.") e execute as correções acima.
+*Instrução ao Claude:* Confirme o recebimento ("Ponte lida. Iniciando proteção das rotas de agenda e ranking.") e execute as correções acima.
+
+

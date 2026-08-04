@@ -10,7 +10,7 @@ import { Stat } from "@/components/stat";
 import { Card } from "@/components/card";
 import { CelulaDisponibilidade } from "@/components/disponibilidade-cell";
 import { iniciais } from "@/lib/candidatos";
-import { lerPerfilEditavel } from "@/lib/perfil-db";
+import { lerPerfilEditor } from "@/lib/perfil-db";
 import { exigirSessao } from "@/lib/sessao-servidor";
 
 export const metadata: Metadata = { title: "Meu Perfil — Oficina Amarela" };
@@ -19,19 +19,11 @@ export const dynamic = "force-dynamic";
 
 export default async function PerfilPage() {
   const sessao = await exigirSessao();
-  const salvo = await lerPerfilEditavel(sessao.id);
+  const doBanco = await lerPerfilEditor(sessao.id);
 
-  // nome/apelido vêm da conta de verdade; headline/local/bio do que a pessoa
-  // editou. O resto (stats, portfólio, conquistas) ainda é demonstração —
-  // só passa a ser real quando as entregas existirem de fato.
-  const p = {
-    ...PERFIL_EDITOR,
-    nome: sessao.nome,
-    apelido: sessao.apelido,
-    headline: salvo?.headline ?? PERFIL_EDITOR.headline,
-    local: salvo?.localizacao ?? PERFIL_EDITOR.local,
-    bio: salvo?.bio ?? PERFIL_EDITOR.bio,
-  };
+  // Perfil real do banco. PERFIL_EDITOR só entra como último recurso (conta
+  // recém-criada não tem nada preenchido, e a tela ficaria vazia demais).
+  const p = doBanco ?? PERFIL_EDITOR;
   const nivel = progressoNivel(p.entregues);
   const livres = DISPONIBILIDADE_PADRAO.flat().filter(Boolean).length;
 
@@ -95,7 +87,11 @@ export default async function PerfilPage() {
               {/* stats */}
               <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3">
                 <Stat valor={String(p.entregues)} rotulo="entregues" />
-                <Stat valor={p.nota.toFixed(1).replace(".", ",")} rotulo="nota" estrela />
+                <Stat
+                  valor={p.nota === null ? "—" : p.nota.toFixed(1).replace(".", ",")}
+                  rotulo={p.nota === null ? "sem nota ainda" : "nota"}
+                  estrela
+                />
                 <Stat valor={String(p.reputacao)} rotulo="XP" />
                 <Stat valor={String(p.streak)} rotulo="sequência" fogo />
               </dl>

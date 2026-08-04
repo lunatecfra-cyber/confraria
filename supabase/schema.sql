@@ -42,6 +42,50 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS headline TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS localizacao TEXT;
 
+-- Números do editor. "entregues" é a fonte da verdade; o resto acompanha.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS entregues INT NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reputacao INT NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS streak INT NOT NULL DEFAULT 0;
+
+-- nota fica NULL até existir avaliação de verdade. Default 5.0 faria um editor
+-- sem nenhuma entrega aparecer com nota cheia pro porta-voz que fosse escolher.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS nota NUMERIC(3,2);
+
+-- nivel é COLUNA GERADA: o Postgres calcula a partir de entregues, seguindo os
+-- mesmos cortes de NIVEIS em lib/perfil.ts (0/10/30/60). Como coluna comum ela
+-- divergiria — o editor chegaria a 12 entregas e continuaria "Aspirante".
+ALTER TABLE users ADD COLUMN IF NOT EXISTS nivel TEXT
+  GENERATED ALWAYS AS (
+    CASE
+      WHEN entregues >= 60 THEN 'Mestre'
+      WHEN entregues >= 30 THEN 'Veterano'
+      WHEN entregues >= 10 THEN 'Confrade'
+      ELSE 'Aspirante'
+    END
+  ) STORED;
+
+CREATE TABLE IF NOT EXISTS portfolio (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  titulo TEXT NOT NULL,
+  formato TEXT NOT NULL CHECK (formato IN ('short','longo')),
+  porta_voz TEXT NOT NULL,
+  tint TEXT,
+  link_video TEXT,
+  criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS conquistas (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  nome TEXT NOT NULL,
+  icone TEXT NOT NULL,
+  conquistado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_portfolio_user ON portfolio (user_id);
+CREATE INDEX IF NOT EXISTS idx_conquistas_user ON conquistas (user_id);
+
 -- Pautas: a demanda que o porta-voz cria e o editor pega.
 -- Fica no banco (e não no localStorage) porque quem cria e quem pega são
 -- PESSOAS DIFERENTES, em navegadores diferentes — localStorage nunca é

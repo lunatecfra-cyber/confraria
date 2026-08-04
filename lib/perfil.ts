@@ -53,7 +53,8 @@ export type PerfilEditor = {
   desde: string;
   bio: string;
   entregues: number;
-  nota: number;
+  nota: number | null; // null = ainda não foi avaliado (não é nota zero)
+  nivel?: Nivel; // vem calculado do banco a partir de entregues
   reputacao: number;
   streak: number; // dias seguidos ativo (entregou ou interagiu)
   portfolio: ItemPortfolio[];
