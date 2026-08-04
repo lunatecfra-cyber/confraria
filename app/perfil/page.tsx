@@ -10,10 +10,13 @@ import { Stat } from "@/components/stat";
 import { Card } from "@/components/card";
 import { CelulaDisponibilidade } from "@/components/disponibilidade-cell";
 import { iniciais } from "@/lib/candidatos";
+import { exigirSessao } from "@/lib/sessao-servidor";
 
 export const metadata: Metadata = { title: "Meu Perfil — Oficina Amarela" };
 
-export default function PerfilPage() {
+export default async function PerfilPage() {
+  await exigirSessao();
+
   const p = PERFIL_EDITOR;
   const nivel = progressoNivel(p.entregues);
   const livres = DISPONIBILIDADE_PADRAO.flat().filter(Boolean).length;

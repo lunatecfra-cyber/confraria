@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PAUTAS, ROTULO_FORMATO, type Pauta } from "@/lib/pautas";
-import { lerSessao } from "@/lib/sessao";
+import { lerSessao } from "@/lib/sessao-servidor";
 
 export const metadata: Metadata = { title: "Minhas Missões — Oficina Amarela" };
 

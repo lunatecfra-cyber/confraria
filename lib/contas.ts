@@ -114,8 +114,71 @@ export async function atualizarSenha(
 ): Promise<{ ok: true } | { ok: false; erro: string }> {
   if (novaSenha.length < 6) return { ok: false, erro: "Senha precisa de pelo menos 6 caracteres." };
   const senha_hash = bcrypt.hashSync(novaSenha, 10);
-  await sql`UPDATE users SET senha_hash = ${senha_hash} WHERE id = ${userId}`;
+  // sessoes_validas_apos = now() derruba todos os cookies emitidos antes daqui
+  // (quem confere isso é lerSessao() em lib/sessao-servidor.ts)
+  await sql`
+    UPDATE users
+    SET senha_hash = ${senha_hash}, sessoes_validas_apos = now()
+    WHERE id = ${userId}
+  `;
   return { ok: true };
+}
+
+// ---- trava de força bruta no login ----------------------------------------
+// Guardada no Postgres de propósito: em memória não funciona na Vercel, porque
+// cada instância serverless tem a própria memória (basta cair noutra instância
+// pra zerar a contagem).
+
+const MAX_TENTATIVAS = 5;
+const MINUTOS_TRAVA = 15;
+const MINUTOS_JANELA = 15; // tentativas velhas que isso são esquecidas
+
+export async function loginTravado(apelido: string): Promise<{ travado: boolean; minutos: number }> {
+  const chave = apelido.trim().toLowerCase();
+  const [linha] = await sql`SELECT travado_ate FROM tentativas_login WHERE chave = ${chave}`;
+  if (!linha?.travado_ate) return { travado: false, minutos: 0 };
+
+  const restanteMs = new Date(linha.travado_ate).getTime() - Date.now();
+  if (restanteMs <= 0) return { travado: false, minutos: 0 };
+
+  return { travado: true, minutos: Math.max(1, Math.ceil(restanteMs / 60000)) };
+}
+
+export async function registrarFalhaLogin(apelido: string): Promise<void> {
+  const chave = apelido.trim().toLowerCase();
+
+  // ON CONFLICT resolve a corrida entre duas tentativas simultâneas: o banco
+  // serializa, então o contador não se perde.
+  const [linha] = await sql`
+    INSERT INTO tentativas_login (chave, tentativas, primeira_em)
+    VALUES (${chave}, 1, now())
+    ON CONFLICT (chave) DO UPDATE SET
+      tentativas = CASE
+        WHEN tentativas_login.primeira_em < now() - (${MINUTOS_JANELA} || ' minutes')::interval
+          THEN 1
+        ELSE tentativas_login.tentativas + 1
+      END,
+      primeira_em = CASE
+        WHEN tentativas_login.primeira_em < now() - (${MINUTOS_JANELA} || ' minutes')::interval
+          THEN now()
+        ELSE tentativas_login.primeira_em
+      END
+    RETURNING tentativas
+  `;
+
+  if (linha && linha.tentativas >= MAX_TENTATIVAS) {
+    await sql`
+      UPDATE tentativas_login
+      SET travado_ate = now() + (${MINUTOS_TRAVA} || ' minutes')::interval,
+          tentativas = 0,
+          primeira_em = now()
+      WHERE chave = ${chave}
+    `;
+  }
+}
+
+export async function limparTentativasLogin(apelido: string): Promise<void> {
+  await sql`DELETE FROM tentativas_login WHERE chave = ${apelido.trim().toLowerCase()}`;
 }
 
 async function gerarApelidoUnico(email: string): Promise<string> {

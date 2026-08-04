@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PAUTAS, ROTULO_STATUS } from "@/lib/pautas";
 import { getCandidato } from "@/lib/candidatos";
-import { lerSessao } from "@/lib/sessao";
+import { lerSessao } from "@/lib/sessao-servidor";
 import { Stat } from "@/components/stat";
 import { Card } from "@/components/card";
 import { AvatarCandidato } from "@/components/avatar-candidato";

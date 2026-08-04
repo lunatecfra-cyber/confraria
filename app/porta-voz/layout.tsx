@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { BotaoSair } from "@/components/botao-sair";
-import { lerSessao } from "@/lib/sessao";
+import { exigirSessao } from "@/lib/sessao-servidor";
 
 export default async function PortaVozLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const sessao = await lerSessao();
+  // cobre todas as telas de /porta-voz/* — derruba sessão revogada
+  const sessao = await exigirSessao();
 
   return (
     <>

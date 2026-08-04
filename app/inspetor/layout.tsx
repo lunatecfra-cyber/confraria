@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { INSPETOR_ATUAL } from "@/lib/pautas";
+import { exigirSessao } from "@/lib/sessao-servidor";
 
-export default function InspetorLayout({
+export default async function InspetorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await exigirSessao();
+
   return (
     <>
       <header className="border-b border-line-soft">

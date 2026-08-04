@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { lerSessao } from "@/lib/sessao";
+import { lerSessao } from "@/lib/sessao-servidor";
 
 export async function GET() {
   const sessao = await lerSessao();

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { autenticar } from "@/lib/contas";
+import {
+  autenticar,
+  limparTentativasLogin,
+  loginTravado,
+  registrarFalhaLogin,
+} from "@/lib/contas";
 import { criarTokenSessao, NOME_COOKIE } from "@/lib/sessao";
 
 export async function POST(request: Request) {
@@ -11,10 +16,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ erro: "Preencha apelido e senha." }, { status: 400 });
   }
 
+  const trava = await loginTravado(apelido);
+  if (trava.travado) {
+    return NextResponse.json(
+      { erro: `Muitas tentativas. Tenta de novo em ${trava.minutos} min.` },
+      { status: 429 }
+    );
+  }
+
   const resultado = await autenticar(apelido, senha);
   if (!resultado.ok) {
+    await registrarFalhaLogin(apelido);
     return NextResponse.json({ erro: resultado.erro }, { status: 401 });
   }
+
+  await limparTentativasLogin(apelido);
 
   const token = await criarTokenSessao(resultado.conta);
   const jar = await cookies();

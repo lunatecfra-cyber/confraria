@@ -9,16 +9,27 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const rotaExigePapel = request.nextUrl.pathname.startsWith("/porta-voz") ? "voz" : "editor";
+  const caminho = request.nextUrl.pathname;
+  const areaDoPapel = sessao.papel === "voz" ? "/porta-voz" : "/editor";
+
+  // /inspetor era totalmente aberto — agora só admin entra. Quando existir um
+  // papel "inspetor" de verdade no banco, ele entra nessa condição também.
+  if (caminho.startsWith("/inspetor")) {
+    if (sessao.papel !== "admin") {
+      return NextResponse.redirect(new URL(areaDoPapel, request.url));
+    }
+    return NextResponse.next();
+  }
+
+  const rotaExigePapel = caminho.startsWith("/porta-voz") ? "voz" : "editor";
 
   if (sessao.papel !== "admin" && sessao.papel !== rotaExigePapel) {
-    const destino = sessao.papel === "voz" ? "/porta-voz" : "/editor";
-    return NextResponse.redirect(new URL(destino, request.url));
+    return NextResponse.redirect(new URL(areaDoPapel, request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/porta-voz/:path*", "/editor/:path*", "/perfil/:path*"],
+  matcher: ["/porta-voz/:path*", "/editor/:path*", "/perfil/:path*", "/inspetor/:path*"],
 };

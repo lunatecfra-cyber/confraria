@@ -1,5 +1,8 @@
+// ATENÇÃO: este arquivo é importado pelo proxy.ts, que roda em Edge runtime.
+// NÃO importar nada de banco (lib/db, postgres.js) aqui — Edge não tem TCP e
+// quebraria o middleware inteiro. A checagem de revogação que precisa do banco
+// mora em lib/sessao-servidor.ts, que só roda em Node.
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
 
 export const NOME_COOKIE = "confraria_sessao";
 const DURACAO = "30d";
@@ -17,6 +20,7 @@ export type SessaoUsuario = {
   apelido: string;
   nome: string;
   papel: Papel;
+  emitidoEm?: number; // "iat" do JWT, em segundos — usado pra derrubar sessão antiga
 };
 
 export async function criarTokenSessao(usuario: SessaoUsuario) {
@@ -36,19 +40,18 @@ export async function verificarTokenSessao(token: string): Promise<SessaoUsuario
       typeof payload.nome === "string" &&
       (payload.papel === "voz" || payload.papel === "editor" || payload.papel === "admin")
     ) {
-      return { id: payload.id, apelido: payload.apelido, nome: payload.nome, papel: payload.papel };
+      return {
+        id: payload.id,
+        apelido: payload.apelido,
+        nome: payload.nome,
+        papel: payload.papel,
+        emitidoEm: typeof payload.iat === "number" ? payload.iat : undefined,
+      };
     }
     return null;
   } catch {
     return null;
   }
-}
-
-export async function lerSessao(): Promise<SessaoUsuario | null> {
-  const jar = await cookies();
-  const token = jar.get(NOME_COOKIE)?.value;
-  if (!token) return null;
-  return verificarTokenSessao(token);
 }
 
 // estado assinado de curta duração — usado pelo fluxo OAuth do Google como
