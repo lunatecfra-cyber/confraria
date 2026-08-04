@@ -30,7 +30,7 @@ export default function PrivacidadePage() {
           </h2>
           <p>
             A Oficina Amarela é uma plataforma que conecta porta-vozes (quem tem o vídeo bruto) a editores
-            (quem edita), com um inspetor garantindo a qualidade antes da entrega final.
+            (quem edita), com um controle de qualidade garantindo o padrão antes da entrega final.
           </p>
         </section>
 
@@ -40,7 +40,7 @@ export default function PrivacidadePage() {
           </h2>
           <ul className="list-disc pl-5">
             <li>Apelido e e-mail (via login com Google ou cadastro)</li>
-            <li>Papel na plataforma (porta-voz, editor ou inspetor) e nível/reputação</li>
+            <li>Papel na plataforma (porta-voz, editor ou controle de qualidade) e nível/reputação</li>
             <li>
               <b className="text-text">Só para porta-vozes:</b> um token de autorização do Google Drive,
               limitado aos arquivos que você escolher compartilhar na plataforma (escopo{" "}

@@ -62,12 +62,19 @@ ALTER TABLE users DROP COLUMN IF EXISTS nivel;
 ALTER TABLE users ADD COLUMN nivel TEXT
   GENERATED ALWAYS AS (
     CASE
-      WHEN entregues >= 60 THEN 'Mestre'
-      WHEN entregues >= 30 THEN 'Veterano'
+      WHEN entregues >= 60 THEN 'Mestre-Artesão'
+      WHEN entregues >= 30 THEN 'Artífice'
       WHEN entregues >= 10 THEN 'Oficial'
-      ELSE 'Aspirante'
+      ELSE 'Aprendiz'
     END
   ) STORED;
+
+-- trava de reserva: enquanto essa data não passar, o editor não pode pegar
+-- pauta nova (usada como penalidade por abandono/atraso)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS travado_reservas_ate TIMESTAMPTZ;
+
+-- (a tabela avaliacoes fica lá embaixo, depois de pautas — ela referencia
+-- pautas e o Postgres exige que a tabela referenciada já exista)
 
 CREATE TABLE IF NOT EXISTS portfolio (
   id SERIAL PRIMARY KEY,
@@ -116,3 +123,18 @@ CREATE TABLE IF NOT EXISTS pautas (
 
 CREATE INDEX IF NOT EXISTS idx_pautas_status ON pautas (status);
 CREATE INDEX IF NOT EXISTS idx_pautas_porta_voz ON pautas (porta_voz_id);
+
+-- Avaliação da entrega. É daqui que a nota do editor vai sair — hoje
+-- users.nota ainda é NULL porque nenhuma entrega foi avaliada.
+-- Precisa vir DEPOIS de pautas: referencia pautas(id).
+CREATE TABLE IF NOT EXISTS avaliacoes (
+  id SERIAL PRIMARY KEY,
+  pauta_id INT NOT NULL REFERENCES pautas(id) ON DELETE CASCADE,
+  editor_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  nota INT NOT NULL CHECK (nota BETWEEN 1 AND 5),
+  comentario TEXT,
+  criada_em TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_avaliacoes_editor ON avaliacoes (editor_id);
+CREATE INDEX IF NOT EXISTS idx_avaliacoes_pauta ON avaliacoes (pauta_id);

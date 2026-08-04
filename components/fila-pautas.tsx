@@ -300,7 +300,7 @@ export function FilaPautas({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
               }`}
               onClick={() => setVisao("baralho")}
             >
-              🃏 Baralho
+              🔨 Bancada de Triagem
             </button>
           </div>
           <button className="btn-ghost w-auto px-5" onClick={sortear} disabled={!!minha}>
@@ -331,7 +331,7 @@ export function FilaPautas({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
             />
           ) : (
             <div className="w-full max-w-lg rounded-2xl border border-dashed border-line p-12 text-center text-sm text-muted">
-              Nenhuma missão disponível pra passar no baralho agora.
+              Nenhuma missão na bancada agora.
             </div>
           )}
           {baralho.length > 0 && (

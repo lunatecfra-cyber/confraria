@@ -61,6 +61,8 @@ Em partes, não tudo de uma vez:
 - [x] **F4 — Inspetor**: aprovar / pedir reedição *(interface pronta, dados fake)*
 - [ ] **F6 — Auth real no Supabase** (apelido/senha + Google) + banco
 - [x] **Perfil do porta-voz** (`/porta-voz/perfil`, variação: pautas criadas no lugar do portfólio) *(interface pronta, dados fake)*
+- [ ] **F7 — Perfil Estendido** (Abas de Certificações do Hub e Equipamentos/Setup do editor)
+
 
 ## Stack
 

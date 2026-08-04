@@ -31,7 +31,7 @@ export default function TermosPage() {
           <p>
             A Oficina Amarela tem três papéis: <b className="text-text">porta-voz</b> (sobe o bruto e descreve
             o que quer), <b className="text-text">editor</b> (pega a missão da fila, edita e entrega) e{" "}
-            <b className="text-text">inspetor</b> (aprova a entrega ou pede reedição).
+            <b className="text-text">controle de qualidade</b> (aprova a entrega ou pede reedição).
           </p>
         </section>
 

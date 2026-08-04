@@ -1,12 +1,14 @@
 import type { Formato } from "@/lib/pautas";
 
-export type Nivel = "Aspirante" | "Oficial" | "Veterano" | "Mestre";
+// mesmos cortes da coluna gerada "nivel" em supabase/schema.sql — se mudar
+// aqui, mudar lá também
+export type Nivel = "Aprendiz" | "Oficial" | "Artífice" | "Mestre-Artesão";
 
 export const NIVEIS: { nome: Nivel; minimo: number }[] = [
-  { nome: "Aspirante", minimo: 0 },
+  { nome: "Aprendiz", minimo: 0 },
   { nome: "Oficial", minimo: 10 },
-  { nome: "Veterano", minimo: 30 },
-  { nome: "Mestre", minimo: 60 },
+  { nome: "Artífice", minimo: 30 },
+  { nome: "Mestre-Artesão", minimo: 60 },
 ];
 
 export function progressoNivel(entregues: number) {
@@ -141,10 +143,10 @@ export type EditorRanking = {
 
 // dados fake pro ranking — jr.eneias é o EDITOR_ATUAL (mesmos números de PERFIL_EDITOR)
 export const EDITORES: EditorRanking[] = [
-  { apelido: "duda.corte", nivel: "Veterano", reputacao: 810, entregues: 34, streak: 12 },
-  { apelido: "gui.frames", nivel: "Veterano", reputacao: 705, entregues: 31, streak: 3 },
+  { apelido: "duda.corte", nivel: "Artífice", reputacao: 810, entregues: 34, streak: 12 },
+  { apelido: "gui.frames", nivel: "Artífice", reputacao: 705, entregues: 31, streak: 3 },
   { apelido: "jr.eneias", nivel: "Oficial", reputacao: 340, entregues: 12, streak: 5 },
   { apelido: "bia.cortez", nivel: "Oficial", reputacao: 290, entregues: 11, streak: 8 },
   { apelido: "theo.edits", nivel: "Oficial", reputacao: 205, entregues: 9, streak: 1 },
-  { apelido: "manu.rc", nivel: "Aspirante", reputacao: 60, entregues: 3, streak: 0 },
+  { apelido: "manu.rc", nivel: "Aprendiz", reputacao: 60, entregues: 3, streak: 0 },
 ];

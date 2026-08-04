@@ -33,7 +33,7 @@ export function FilaInspetor() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text lg:text-3xl">
-            Fila de revisão
+            Controle de Qualidade
           </h1>
           <p className="mt-1 text-sm text-muted">
             Aprove ou peça reedição das missões entregues.

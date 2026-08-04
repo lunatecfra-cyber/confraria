@@ -23,7 +23,7 @@ export default async function InspetorLayout({
 
           <div className="flex items-center gap-4">
             <span className="hidden text-sm text-muted sm:block">
-              {INSPETOR_ATUAL.apelido} · inspetor
+              {INSPETOR_ATUAL.apelido} · controle de qualidade
             </span>
             <Link
               href="/"

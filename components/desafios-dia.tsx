@@ -30,7 +30,7 @@ export function DesafiosDia() {
     <section className="mb-8">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-xs font-medium uppercase tracking-[0.14em] text-gold">
-          Desafios de hoje
+          Encomendas expressas
         </h2>
         <span className="text-xs text-muted">
           {feitos}/{desafios.length}

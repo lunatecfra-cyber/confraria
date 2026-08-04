@@ -30,7 +30,7 @@ export type Pauta = {
 
 export type Editor = {
   apelido: string;
-  nivel: "Aspirante" | "Oficial" | "Veterano" | "Mestre";
+  nivel: "Aprendiz" | "Oficial" | "Artífice" | "Mestre-Artesão";
   entregues: number;
   nota: number | null;
 };

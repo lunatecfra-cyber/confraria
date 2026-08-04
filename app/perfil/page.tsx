@@ -93,7 +93,7 @@ export default async function PerfilPage() {
                   estrela
                 />
                 <Stat valor={String(p.reputacao)} rotulo="XP" />
-                <Stat valor={String(p.streak)} rotulo="sequência" fogo />
+                <Stat valor={String(p.streak)} rotulo="ritmo da forja" fogo />
               </dl>
             </div>
           </section>
@@ -192,7 +192,7 @@ export default async function PerfilPage() {
                 )}
               </Card>
 
-              <Card titulo="Conquistas" delay={0.15}>
+              <Card titulo="Caixa de Ferramentas" delay={0.15}>
                 <ul className="flex flex-col gap-3">
                   {p.conquistas.map((c) => (
                     <li key={c.nome} className="flex items-center gap-3">

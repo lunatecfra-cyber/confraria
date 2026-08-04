@@ -16,11 +16,11 @@ const PILARES = [
     ),
   },
   {
-    texto: "Entregue, passe pelo inspetor e ganhe reputação.",
+    texto: "Entregue, passe pelo controle de qualidade e ganhe reputação.",
     icon: <path d="M20 6 9 17l-5-5" />,
   },
   {
-    texto: "Suba de Aspirante a Mestre e desbloqueie os pagos.",
+    texto: "Suba de Aprendiz a Mestre-Artesão e desbloqueie os pagos.",
     icon: <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z" />,
   },
 ];
