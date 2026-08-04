@@ -1,14 +1,24 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { BotaoSair } from "@/components/botao-sair";
-import { EDITOR_ATUAL } from "@/lib/pautas";
+import { EDITOR_ATUAL, type Editor } from "@/lib/pautas";
+import { lerPerfilEditor } from "@/lib/perfil-db";
 import { lerSessao } from "@/lib/sessao-servidor";
 
 export async function AppHeader() {
   const sessao = await lerSessao();
-  // apelido vem da conta real; nível/entregues/nota ainda são demonstração
-  // (só viram reais quando existirem entregas de verdade)
-  const editor = { ...EDITOR_ATUAL, apelido: sessao?.apelido ?? EDITOR_ATUAL.apelido };
+  const perfil = sessao ? await lerPerfilEditor(sessao.id) : null;
+
+  // números reais da conta. EDITOR_ATUAL só entra se não houver sessão —
+  // antes ele aparecia sempre, e uma conta nova exibia "12 entregues · 4.8"
+  const editor: Editor = perfil
+    ? {
+        apelido: perfil.apelido,
+        nivel: (perfil.nivel ?? "Aprendiz") as Editor["nivel"],
+        entregues: perfil.entregues,
+        nota: perfil.nota,
+      }
+    : EDITOR_ATUAL;
   return (
     <header className="border-b border-line-soft">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 lg:px-8">

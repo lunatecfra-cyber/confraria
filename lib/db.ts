@@ -29,3 +29,13 @@ export function sql(strings: TemplateStringsArray, ...values: unknown[]) {
   ) => postgres.PendingQuery<postgres.Row[]>;
   return client(strings, ...values);
 }
+
+/**
+ * Marca um valor como JSONB. Precisa existir aqui porque `sql` é wrapper e
+ * não carrega os helpers do postgres.js.
+ *
+ * Usar isto em vez de JSON.stringify(x) + ::jsonb — com a string, o Postgres
+ * guarda um JSON *string* dentro do jsonb (duplamente codificado) e o valor
+ * volta como texto em vez de objeto/array.
+ */
+sql.json = (valor: unknown) => obterClient().json(valor as never);

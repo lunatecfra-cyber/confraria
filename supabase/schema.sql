@@ -73,6 +73,18 @@ ALTER TABLE users ADD COLUMN nivel TEXT
 -- pauta nova (usada como penalidade por abandono/atraso)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS travado_reservas_ate TIMESTAMPTZ;
 
+-- Onboarding do editor: o que ele domina, o estilo que faz e quando pode
+-- pegar trabalho. Alimenta o match e a agenda.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS softwares TEXT[];
+ALTER TABLE users ADD COLUMN IF NOT EXISTS estilos TEXT[];
+ALTER TABLE users ADD COLUMN IF NOT EXISTS portfolio_link TEXT;
+-- grade [periodo][dia] = 3x7 booleanos. JSONB em vez de array multidimensional
+-- do Postgres, que é chato de ler/escrever a partir do JS
+ALTER TABLE users ADD COLUMN IF NOT EXISTS disponibilidade JSONB;
+-- marca que o editor já passou pelo onboarding (senão não dá pra distinguir
+-- "não preencheu" de "preencheu deixando tudo vazio")
+ALTER TABLE users ADD COLUMN IF NOT EXISTS perfil_completo BOOLEAN NOT NULL DEFAULT false;
+
 -- (a tabela avaliacoes fica lá embaixo, depois de pautas — ela referencia
 -- pautas e o Postgres exige que a tabela referenciada já exista)
 

@@ -38,6 +38,91 @@ export async function salvarPerfilEditavel(
   `;
 }
 
+export type OnboardingEditor = {
+  nome: string;
+  localizacao: string;
+  headline: string;
+  softwares: string[];
+  estilos: string[];
+  portfolioLink: string;
+  disponibilidade: boolean[][];
+  perfilCompleto: boolean;
+};
+
+/**
+ * Devolve a grade sempre como boolean[][], ou [] se não der.
+ * Aceita string porque linhas gravadas antes da correção do sql.json ficaram
+ * com JSON duplamente codificado no banco.
+ */
+function normalizarGrade(valor: unknown): boolean[][] {
+  let g = valor;
+  if (typeof g === "string") {
+    try {
+      g = JSON.parse(g);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(g)) return [];
+  return g.map((linha) => (Array.isArray(linha) ? linha.map(Boolean) : []));
+}
+
+export async function lerOnboardingEditor(userId: number): Promise<OnboardingEditor | null> {
+  const [l] = await sql`
+    SELECT nome, localizacao, headline, softwares, estilos, portfolio_link,
+           disponibilidade, perfil_completo
+    FROM users WHERE id = ${userId}
+  `;
+  if (!l) return null;
+  return {
+    nome: l.nome ?? "",
+    localizacao: l.localizacao ?? "",
+    headline: l.headline ?? "",
+    softwares: l.softwares ?? [],
+    estilos: l.estilos ?? [],
+    portfolioLink: l.portfolio_link ?? "",
+    disponibilidade: normalizarGrade(l.disponibilidade),
+    perfilCompleto: l.perfil_completo ?? false,
+  };
+}
+
+export async function salvarOnboardingEditor(
+  userId: number,
+  dados: {
+    nome: string;
+    localizacao?: string;
+    headline?: string;
+    softwares?: string[];
+    estilos?: string[];
+    portfolioLink?: string;
+    disponibilidade?: boolean[][];
+  }
+): Promise<{ ok: true } | { ok: false; erro: string }> {
+  const nome = dados.nome.trim();
+  if (!nome) return { ok: false, erro: "Digite seu nome." };
+
+  // corta no teto em vez de recusar: o formulário já impede passar disso, e
+  // recusar aqui só perderia o resto do que a pessoa preencheu
+  const estilos = (dados.estilos ?? []).slice(0, 3);
+
+  await sql`
+    UPDATE users SET
+      nome = ${nome},
+      localizacao = ${dados.localizacao?.trim() || null},
+      headline = ${dados.headline?.trim() || null},
+      softwares = ${dados.softwares ?? []},
+      estilos = ${estilos},
+      portfolio_link = ${dados.portfolioLink?.trim() || null},
+      -- sql.json e nao JSON.stringify: com a string, o Postgres guardava um
+      -- JSON *string* dentro do jsonb (duplamente codificado) e a grade
+      -- voltava como texto, nao como array
+      disponibilidade = ${sql.json(dados.disponibilidade ?? [])},
+      perfil_completo = true
+    WHERE id = ${userId}
+  `;
+  return { ok: true };
+}
+
 /** Perfil completo do editor: conta + números + portfólio + conquistas. */
 export async function lerPerfilEditor(userId: number): Promise<PerfilEditor | null> {
   const [conta] = await sql`

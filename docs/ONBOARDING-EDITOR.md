@@ -1,38 +1,51 @@
-# Oficina Amarela — Onboarding do Editor (Especificação)
+# Oficina Amarela — Onboarding do Editor (Especificação Detalhada)
 
-> Proposta de fluxo de cadastro e pareamento (*matching*) do editor para a Oficina Amarela, baseado em pesquisa de melhores práticas do NotebookLM.
-> Status: Planejado (Aguardando implementação na Etapa F7).
-
----
-
-## 1. Funil de Cadastro em 3 Passos (Revelação Progressiva)
-
-Para evitar sobrecarga cognitiva e garantir a captura de dados essenciais para o pareamento inteligente (*matching*), o cadastro do editor seguirá o seguinte fluxo:
-
-```
-[ ETAPA 1: IDENTIDADE ]  ===>  [ ETAPA 2: BANCADA ]  ===>  [ ETAPA 3: RITMO ]
-  - Apelido de Guilda            - Estilo de Edição          - Agenda e Horas
-  - E-mail e Senha               - Links de Portfólio        - Perguntas DISC
-  - Softwares Favoritos          - Vídeo de Apresentação     - Google Authenticator (MFA)
-```
-
-### Passo 1: Identidade e Ferramentas (Assinatura)
-*   **Campos**: Apelido único de guilda (case-insensitive), e-mail, senha e seleção rápida de softwares dominados (badges clicáveis: Premiere, After Effects, DaVinci Resolve, CapCut).
-*   **Objetivo**: Cadastro de credenciais básicas e ferramentas principais do setup sem fricção.
-
-### Passo 2: Perfil Criativo e "Bancada" (Sua Arte)
-*   **Campos**: Seleção de até 3 estilos criativos dominantes (Reels Dinâmico, Vlog/Conversacional, Político Sóbrio) e link do portfólio inicial externo (Vimeo, YouTube, etc.).
-*   **Objetivo**: Coleta de dados estéticos para o pareamento automatizado com o tom das pautas dos porta-vozes.
-
-### Passo 3: Ritmo da Forja e Segurança (Sua Disponibilidade)
-*   **Campos**: Grade inicial de horas disponíveis (agenda) e ativação rápida de MFA (Google Authenticator) para proteção da conta.
-*   **Objetivo**: Definir o comprometimento de horas e blindar o acesso do editor.
+> Processo de onboarding interativo, gamificado e simplificado para novos editores de vídeo na Oficina Amarela.
+> Status: Planejado para implementação.
 
 ---
 
-## 2. Parâmetros de Matching (Estilo "Uber")
-O pareamento automático de pautas na fila de triagem usará:
-*   **Estilo Criativo**: Match entre `brief_tom`/`brief_refs` da pauta e especialidade do editor.
-*   **Software**: Compatibilidade técnica de finalização do material.
-*   **Tempo de Resposta**: Editores mais velozes no histórico ganham prioridade no despacho.
-*   **Streak (Ritmo da Forja)**: Recompensar constância consecutiva na plataforma.
+## 1. Fluxo em 3 Etapas (Interface do Usuário)
+
+O onboarding será hospedado na rota `/editor/criar-perfil` (exigindo sessão de editor ativa). 
+
+### Aba 1: Identidade da Forja
+*   **Nome de Exibição:** Nome pelo qual o editor será visto na plataforma.
+*   **Headline:** Frase curta de apresentação (Ex: "Especialista em shorts de alta retenção").
+*   **Cidade / Estado:** Localização geográfica.
+*   **Bio Curta:** Breve descrição da experiência ou estilo.
+
+### Aba 2: A Bancada (Ferramentas e Setup)
+Para tornar a experiência leve e gamificada, as escolhas de hardware e experiência serão divertidas:
+*   **Nível de Edição (Selecione um):**
+    *   `Iniciante` — *"Tô aprendendo do zero, sei nada ainda"*
+    *   `Intermediário` — *"Já editei alguns vídeos para candidatos e canais"*
+    *   `Avançado` — *"Dominador das ferramentas, edito de olhos fechados"*
+*   **Poder de Processamento (Selecione o Setup):**
+    *   `📱 Celular/Tablet` — *"Uso CapCut móvel e aplicativos rápidos"*
+    *   `🥔 PC Batata` — *"Chora e trava se eu tentar abrir o Premiere"*
+    *   `⚙️ PC Médio` — *"Dá pro gasto usando proxies e paciência"*
+    *   `🚀 PC Monstro (Roda GTA 6)` — *"Renderiza 4K liso sem reclamar"*
+*   **Ferramentas Preferidas (Badges Clicáveis):**
+    *   Adobe Premiere Pro
+    *   DaVinci Resolve
+    *   After Effects
+    *   CapCut Desktop / Mobile
+
+### Aba 3: O Portfólio (Sua Arte)
+*   **Link de Vídeo de Destaque:** URL (YouTube, Vimeo, Drive) de um vídeo com **duração máxima de 2 a 2.5 minutos**.
+*   **Nicho de Atuação (Múltipla Escolha):**
+    *   `Vertical (9:16)` — Reels, Shorts e TikToks dinâmicos de alta retenção.
+    *   `Horizontal (16:9)` — Documentários, vídeos de canal e institucionais sóbrios.
+
+---
+
+## 2. Persistência no Banco de Dados
+Os dados coletados serão salvos nas colunas do usuário logado:
+*   `nome`, `headline`, `bio`, `localizacao` (existentes na tabela `users`).
+*   Novas colunas a serem criadas se necessário ou serializadas em campos textuais/JSON:
+    *   `nivel_computador` (TEXT)
+    *   `nivel_experiencia` (TEXT)
+    *   `softwares_favoritos` (TEXT[])
+    *   `nicho_atuacao` (TEXT)
+    *   `link_portfolio` (TEXT)

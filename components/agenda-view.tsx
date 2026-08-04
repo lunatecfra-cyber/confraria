@@ -7,26 +7,40 @@ import { CelulaDisponibilidade } from "@/components/disponibilidade-cell";
 
 const CHAVE_STORAGE = "confraria:disponibilidade";
 
-export function AgendaView() {
+export function AgendaView({ doBanco = null }: { doBanco?: boolean[][] | null }) {
+  // o que veio do onboarding (banco) manda. Sem isso, a agenda mostraria a
+  // grade padrão e o editor veria algo diferente do que acabou de preencher.
   const [disp, setDisp] = useState<boolean[][]>(() =>
-    DISPONIBILIDADE_PADRAO.map((linha) => [...linha])
+    doBanco && doBanco.length === DISPONIBILIDADE_PADRAO.length
+      ? doBanco.map((linha) => [...linha])
+      : DISPONIBILIDADE_PADRAO.map((linha) => [...linha])
   );
 
-  // le do localStorage so depois de montar (evita mismatch de hidratacao SSR/cliente)
+  // localStorage só entra se o banco não tiver nada (conta antiga, de antes
+  // do onboarding existir)
   useEffect(() => {
+    if (doBanco && doBanco.length === DISPONIBILIDADE_PADRAO.length) return;
     try {
       const salvo = localStorage.getItem(CHAVE_STORAGE);
       if (salvo) setDisp(JSON.parse(salvo));
     } catch {
       // localStorage indisponivel ou dado corrompido - mantem o padrao
     }
-  }, []);
+  }, [doBanco]);
 
   const toggle = (p: number, d: number) =>
     setDisp((atual) => {
       const novo = atual.map((linha, i) =>
         i === p ? linha.map((v, j) => (j === d ? !v : v)) : linha
       );
+      // grava no banco (fonte da verdade) e no localStorage como reserva
+      fetch("/api/editor/disponibilidade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ disponibilidade: novo }),
+      }).catch(() => {
+        // sem rede: a mudança ainda vale nesta sessão
+      });
       try {
         localStorage.setItem(CHAVE_STORAGE, JSON.stringify(novo));
       } catch {

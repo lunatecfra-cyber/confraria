@@ -41,7 +41,8 @@ export function CriarContaForm() {
       return;
     }
 
-    router.push(papel === "editor" ? "/editor" : "/porta-voz/criar-perfil");
+    // os dois papéis passam pelo assistente de perfil antes da área principal
+    router.push(papel === "editor" ? "/editor/criar-perfil" : "/porta-voz/criar-perfil");
     router.refresh();
   }
 

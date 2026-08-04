@@ -4,6 +4,29 @@ import type { Formato } from "@/lib/pautas";
 // aqui, mudar lá também
 export type Nivel = "Aprendiz" | "Oficial" | "Artífice" | "Mestre-Artesão";
 
+// o que o editor domina — usado no onboarding e, no futuro, pra casar com o
+// requisito técnico da pauta
+export const SOFTWARES = [
+  "Premiere",
+  "After Effects",
+  "DaVinci Resolve",
+  "CapCut",
+  "Final Cut",
+  "Photoshop",
+] as const;
+
+// estilo de edição — casa com o tom do brief da pauta no match
+export const ESTILOS = [
+  "Reels dinâmico",
+  "Vlog / conversacional",
+  "Político sóbrio",
+  "Documental",
+  "Motion / gráfico",
+  "Corte de live",
+] as const;
+
+export const MAX_ESTILOS = 3;
+
 export const NIVEIS: { nome: Nivel; minimo: number }[] = [
   { nome: "Aprendiz", minimo: 0 },
   { nome: "Oficial", minimo: 10 },
