@@ -30,14 +30,14 @@ export type Pauta = {
 
 export type Editor = {
   apelido: string;
-  nivel: "Aspirante" | "Confrade" | "Veterano" | "Mestre";
+  nivel: "Aspirante" | "Oficial" | "Veterano" | "Mestre";
   entregues: number;
   nota: number | null;
 };
 
 export const EDITOR_ATUAL: Editor = {
   apelido: "jr.eneias",
-  nivel: "Confrade",
+  nivel: "Oficial",
   entregues: 12,
   nota: 4.8, // mesmo valor de PERFIL_EDITOR.nota (lib/perfil.ts) - mesma pessoa, dado fake consistente
 };

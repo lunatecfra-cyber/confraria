@@ -54,12 +54,17 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS nota NUMERIC(3,2);
 -- nivel é COLUNA GERADA: o Postgres calcula a partir de entregues, seguindo os
 -- mesmos cortes de NIVEIS em lib/perfil.ts (0/10/30/60). Como coluna comum ela
 -- divergiria — o editor chegaria a 12 entregas e continuaria "Aspirante".
-ALTER TABLE users ADD COLUMN IF NOT EXISTS nivel TEXT
+--
+-- É DROP + ADD (e não ADD IF NOT EXISTS) porque o Postgres não deixa alterar a
+-- expressão de uma coluna gerada. Recriar é seguro: o valor é 100% derivado de
+-- entregues, não há dado próprio pra perder.
+ALTER TABLE users DROP COLUMN IF EXISTS nivel;
+ALTER TABLE users ADD COLUMN nivel TEXT
   GENERATED ALWAYS AS (
     CASE
       WHEN entregues >= 60 THEN 'Mestre'
       WHEN entregues >= 30 THEN 'Veterano'
-      WHEN entregues >= 10 THEN 'Confrade'
+      WHEN entregues >= 10 THEN 'Oficial'
       ELSE 'Aspirante'
     END
   ) STORED;

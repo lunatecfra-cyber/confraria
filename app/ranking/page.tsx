@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { AppHeader } from "@/components/app-header";
 import { EDITOR_ATUAL } from "@/lib/pautas";
 import { EDITORES } from "@/lib/perfil";
+import { exigirSessao } from "@/lib/sessao-servidor";
 
 export const metadata: Metadata = { title: "Ranking — Oficina Amarela" };
 
 export const dynamic = "force-dynamic";
 
 export default async function RankingPage() {
+  await exigirSessao();
+
   const ordenado = [...EDITORES].sort((a, b) => b.reputacao - a.reputacao);
 
   return (

@@ -1,10 +1,10 @@
 import type { Formato } from "@/lib/pautas";
 
-export type Nivel = "Aspirante" | "Confrade" | "Veterano" | "Mestre";
+export type Nivel = "Aspirante" | "Oficial" | "Veterano" | "Mestre";
 
 export const NIVEIS: { nome: Nivel; minimo: number }[] = [
   { nome: "Aspirante", minimo: 0 },
-  { nome: "Confrade", minimo: 10 },
+  { nome: "Oficial", minimo: 10 },
   { nome: "Veterano", minimo: 30 },
   { nome: "Mestre", minimo: 60 },
 ];
@@ -143,8 +143,8 @@ export type EditorRanking = {
 export const EDITORES: EditorRanking[] = [
   { apelido: "duda.corte", nivel: "Veterano", reputacao: 810, entregues: 34, streak: 12 },
   { apelido: "gui.frames", nivel: "Veterano", reputacao: 705, entregues: 31, streak: 3 },
-  { apelido: "jr.eneias", nivel: "Confrade", reputacao: 340, entregues: 12, streak: 5 },
-  { apelido: "bia.cortez", nivel: "Confrade", reputacao: 290, entregues: 11, streak: 8 },
-  { apelido: "theo.edits", nivel: "Confrade", reputacao: 205, entregues: 9, streak: 1 },
+  { apelido: "jr.eneias", nivel: "Oficial", reputacao: 340, entregues: 12, streak: 5 },
+  { apelido: "bia.cortez", nivel: "Oficial", reputacao: 290, entregues: 11, streak: 8 },
+  { apelido: "theo.edits", nivel: "Oficial", reputacao: 205, entregues: 9, streak: 1 },
   { apelido: "manu.rc", nivel: "Aspirante", reputacao: 60, entregues: 3, streak: 0 },
 ];
