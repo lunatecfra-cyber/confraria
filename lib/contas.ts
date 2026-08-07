@@ -71,38 +71,39 @@ export async function autenticar(
   };
 }
 
-export async function autenticarOuCriarContaGoogle(dados: {
+/**
+ * Só procura — nunca cria. Chamada logo que o Google confirma quem é a
+ * pessoa, antes de saber se ela é editor ou porta-voz. Conta existente
+ * entra direto no papel que já tem (nunca se pergunta de novo); `conta:
+ * null` quer dizer "identidade nova", quem chama decide o que fazer (hoje:
+ * manda pra tela de escolher o papel).
+ */
+export async function buscarContaGoogle(
+  googleId: string,
+  email: string
+): Promise<{ ok: true; conta: ContaUsuario | null } | { ok: false; erro: string }> {
+  const [porGoogleId] = await sql`
+    SELECT id, apelido, nome, email, papel FROM users WHERE google_id = ${googleId}
+  `;
+  if (porGoogleId) return { ok: true, conta: porGoogleId as ContaUsuario };
+
+  const [porEmail] = await sql`SELECT id FROM users WHERE lower(email) = lower(${email})`;
+  if (porEmail) {
+    return { ok: false, erro: "Esse e-mail já tem conta na Oficina Amarela — entra com apelido e senha." };
+  }
+
+  return { ok: true, conta: null };
+}
+
+/** Cria a conta Google depois que a pessoa escolheu o papel em /escolher-papel. */
+export async function criarContaGoogle(dados: {
   googleId: string;
   email: string;
   nome: string;
   papel: Papel;
   foto?: string;
-}): Promise<{ ok: true; conta: ContaUsuario; novo: boolean } | { ok: false; erro: string }> {
-  const [porGoogleId] = await sql`
-    SELECT id, apelido, nome, email, papel FROM users WHERE google_id = ${dados.googleId}
-  `;
-  if (porGoogleId) {
-    // essa conta Google já existe com OUTRO papel — sem essa checagem, o
-    // login reaproveitava ela silenciosamente e ignorava o papel escolhido
-    // agora (ex: escolheu "editor" mas caía direto na conta porta-voz antiga)
-    if (porGoogleId.papel !== dados.papel) {
-      const outroPapel = porGoogleId.papel === "editor" ? "editor" : "porta-voz";
-      return {
-        ok: false,
-        erro: `Essa conta Google já é ${outroPapel} na Oficina Amarela. Entra por esse caminho, ou usa outra conta Google.`,
-      };
-    }
-    return { ok: true, conta: porGoogleId as ContaUsuario, novo: false };
-  }
-
-  const [porEmail] = await sql`SELECT id FROM users WHERE lower(email) = lower(${dados.email})`;
-  if (porEmail) {
-    return { ok: false, erro: "Esse e-mail já tem conta na Oficina Amarela — entra com apelido e senha." };
-  }
-
+}): Promise<{ ok: true; conta: ContaUsuario } | { ok: false; erro: string }> {
   const apelido = await gerarApelidoUnico(dados.email);
-  // foto só é gravada aqui, na criação — login seguinte não sobrescreve,
-  // pra não apagar uma foto que o candidato tenha trocado depois
   const [linha] = await sql`
     INSERT INTO users (apelido, nome, email, google_id, papel, foto_url)
     VALUES (${apelido}, ${dados.nome}, ${dados.email}, ${dados.googleId}, ${dados.papel}, ${dados.foto ?? null})
@@ -111,7 +112,6 @@ export async function autenticarOuCriarContaGoogle(dados: {
 
   return {
     ok: true,
-    novo: true,
     conta: { id: linha.id, apelido, nome: dados.nome, email: dados.email, papel: dados.papel },
   };
 }

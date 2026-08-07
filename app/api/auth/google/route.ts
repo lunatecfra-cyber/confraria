@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { googleConfigurado, montarUrlAutorizacao } from "@/lib/oauth-google";
-import { criarEstadoAssinado, type Papel } from "@/lib/sessao";
+import { criarEstadoAssinado } from "@/lib/sessao";
 
+// não pergunta mais o papel aqui — quem já tem conta entra direto no papel
+// que já tem, e quem é novo escolhe depois, em /escolher-papel (ver callback)
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const papelParam = url.searchParams.get("papel");
-  const papel: Papel = papelParam === "editor" ? "editor" : "voz";
 
   if (!googleConfigurado()) {
     return NextResponse.json(
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   }
 
   const redirectUri = new URL("/api/auth/google/callback", url.origin).toString();
-  const state = await criarEstadoAssinado({ papel });
+  const state = await criarEstadoAssinado();
 
   return NextResponse.redirect(montarUrlAutorizacao(redirectUri, state));
 }

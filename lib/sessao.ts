@@ -55,9 +55,40 @@ export async function verificarTokenSessao(token: string): Promise<SessaoUsuario
 }
 
 // estado assinado de curta duração — usado pelo fluxo OAuth do Google como
-// "state" (protege contra CSRF) carregando o papel escolhido antes do
-// redirecionamento, sem precisar guardar nada no servidor
-export async function criarEstadoAssinado(dados: { papel: Papel }) {
+// "state" (protege contra CSRF), sem precisar guardar nada no servidor. Não
+// carrega mais o papel: isso só é escolhido DEPOIS do Google confirmar quem
+// é a pessoa (ver criarIdentidadePendente abaixo) — antes, perguntar o papel
+// antes do Google e o botão de login (sem essa pergunta) divergiam, e uma
+// conta podia acabar criada com o papel errado sem avisar ninguém.
+export async function criarEstadoAssinado() {
+  return new SignJWT({})
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("10m")
+    .sign(chave());
+}
+
+export async function verificarEstadoAssinado(token: string): Promise<boolean> {
+  try {
+    await jwtVerify(token, chave());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// identidade do Google confirmada, mas ainda sem conta — carrega o
+// necessário pra criar a conta assim que a pessoa escolher o papel na tela
+// /escolher-papel. Curta duração de propósito: ninguém deveria demorar mais
+// que alguns minutos pra escolher "editor" ou "porta-voz".
+export type IdentidadeGooglePendente = {
+  googleId: string;
+  email: string;
+  nome: string;
+  foto?: string;
+};
+
+export async function criarIdentidadePendente(dados: IdentidadeGooglePendente) {
   return new SignJWT({ ...dados })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -65,11 +96,18 @@ export async function criarEstadoAssinado(dados: { papel: Papel }) {
     .sign(chave());
 }
 
-export async function verificarEstadoAssinado(token: string): Promise<{ papel: Papel } | null> {
+export async function verificarIdentidadePendente(
+  token: string
+): Promise<IdentidadeGooglePendente | null> {
   try {
     const { payload } = await jwtVerify(token, chave());
-    if (payload.papel === "voz" || payload.papel === "editor") {
-      return { papel: payload.papel };
+    if (typeof payload.googleId === "string" && typeof payload.email === "string" && typeof payload.nome === "string") {
+      return {
+        googleId: payload.googleId,
+        email: payload.email,
+        nome: payload.nome,
+        foto: typeof payload.foto === "string" ? payload.foto : undefined,
+      };
     }
     return null;
   } catch {

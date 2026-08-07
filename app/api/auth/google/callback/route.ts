@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { trocarCodigoPorPerfil } from "@/lib/oauth-google";
-import { autenticarOuCriarContaGoogle } from "@/lib/contas";
-import { criarTokenSessao, verificarEstadoAssinado, NOME_COOKIE } from "@/lib/sessao";
+import { buscarContaGoogle } from "@/lib/contas";
+import { criarIdentidadePendente, criarTokenSessao, verificarEstadoAssinado, NOME_COOKIE } from "@/lib/sessao";
 
 function erroRedirect(origin: string, motivo: string) {
   return NextResponse.redirect(`${origin}/login?erro_google=${encodeURIComponent(motivo)}`);
@@ -17,8 +17,8 @@ export async function GET(request: Request) {
     return erroRedirect(url.origin, "Login com Google cancelado.");
   }
 
-  const estado = await verificarEstadoAssinado(stateToken);
-  if (!estado) {
+  const estadoOk = await verificarEstadoAssinado(stateToken);
+  if (!estadoOk) {
     return erroRedirect(url.origin, "Sessão de login expirou, tenta de novo.");
   }
 
@@ -28,32 +28,33 @@ export async function GET(request: Request) {
     return erroRedirect(url.origin, "Não deu pra confirmar sua conta Google.");
   }
 
-  const resultado = await autenticarOuCriarContaGoogle({
-    googleId: perfilGoogle.googleId,
-    email: perfilGoogle.email,
-    nome: perfilGoogle.nome,
-    papel: estado.papel,
-    foto: perfilGoogle.foto,
-  });
+  const resultado = await buscarContaGoogle(perfilGoogle.googleId, perfilGoogle.email);
   if (!resultado.ok) {
     return erroRedirect(url.origin, resultado.erro);
   }
 
-  const token = await criarTokenSessao(resultado.conta);
-  const jar = await cookies();
-  jar.set(NOME_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+  // conta já existe: entra direto no papel que ela já tem — nunca se
+  // pergunta de novo, então não tem como cair no papel errado
+  if (resultado.conta) {
+    const token = await criarTokenSessao(resultado.conta);
+    const jar = await cookies();
+    jar.set(NOME_COOKIE, token, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
+    const destino = resultado.conta.papel === "editor" ? "/editor" : "/porta-voz";
+    return NextResponse.redirect(new URL(destino, url.origin));
+  }
+
+  // identidade nova — ainda não sabemos se é editor ou porta-voz. Carrega o
+  // que o Google confirmou num token de curta duração e manda escolher.
+  const pendente = await criarIdentidadePendente({
+    googleId: perfilGoogle.googleId,
+    email: perfilGoogle.email,
+    nome: perfilGoogle.nome,
+    foto: perfilGoogle.foto,
   });
-
-  const destino =
-    resultado.conta.papel === "editor"
-      ? "/editor"
-      : resultado.novo
-        ? "/porta-voz/criar-perfil?via=google"
-        : "/porta-voz";
-
-  return NextResponse.redirect(new URL(destino, url.origin));
+  return NextResponse.redirect(new URL(`/escolher-papel?t=${pendente}`, url.origin));
 }
