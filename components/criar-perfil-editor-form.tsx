@@ -2,17 +2,23 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DIAS, PERIODOS } from "@/lib/agenda";
-import { ESTILOS, MAX_ESTILOS, SOFTWARES } from "@/lib/perfil";
-import { CelulaDisponibilidade } from "@/components/disponibilidade-cell";
+import {
+  ESTILOS,
+  MAX_ESTILOS,
+  NICHOS,
+  NIVEIS_EDICAO,
+  SETUPS_PC,
+  SOFTWARES,
+  type OpcaoComFrase,
+} from "@/lib/perfil";
 import type { OnboardingEditor } from "@/lib/perfil-db";
 
-type Aba = "identidade" | "arte" | "forja";
+type Aba = "identidade" | "bancada" | "portfolio";
 
 const ABAS: { chave: Aba; rotulo: string }[] = [
   { chave: "identidade", rotulo: "Identidade" },
-  { chave: "arte", rotulo: "Arte" },
-  { chave: "forja", rotulo: "Forja" },
+  { chave: "bancada", rotulo: "A Bancada" },
+  { chave: "portfolio", rotulo: "Portfólio" },
 ];
 
 function chip(ativo: boolean, bloqueado = false) {
@@ -25,7 +31,41 @@ function chip(ativo: boolean, bloqueado = false) {
   }`;
 }
 
-const gradeVazia = () => PERIODOS.map(() => DIAS.map(() => false));
+function cartao(ativo: boolean) {
+  return `w-full rounded-xl border p-3 text-left transition-colors ${
+    ativo
+      ? "border-gold-lo bg-gold/10"
+      : "border-line bg-surface hover:border-gold/30"
+  }`;
+}
+
+/** Nível de Edição / Setup do PC: uma opção só, com frasezinha embaixo. */
+function SeletorCartao({
+  opcoes,
+  valor,
+  aoEscolher,
+}: {
+  opcoes: OpcaoComFrase[];
+  valor: string;
+  aoEscolher: (rotulo: string) => void;
+}) {
+  return (
+    <div className="mt-3 flex flex-col gap-2">
+      {opcoes.map((o) => (
+        <button
+          key={o.rotulo}
+          type="button"
+          onClick={() => aoEscolher(o.rotulo)}
+          aria-pressed={valor === o.rotulo}
+          className={cartao(valor === o.rotulo)}
+        >
+          <p className="text-sm font-medium text-text">{o.rotulo}</p>
+          <p className="mt-0.5 text-xs text-muted">{o.frase}</p>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }) {
   const router = useRouter();
@@ -34,14 +74,15 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
   const [nome, setNome] = useState(inicial.nome);
   const [localizacao, setLocalizacao] = useState(inicial.localizacao);
   const [headline, setHeadline] = useState(inicial.headline);
+  const [bio, setBio] = useState(inicial.bio);
+
+  const [nivelEdicao, setNivelEdicao] = useState(inicial.nivelEdicao);
+  const [setupPc, setSetupPc] = useState(inicial.setupPc);
   const [softwares, setSoftwares] = useState<string[]>(inicial.softwares);
-
   const [estilos, setEstilos] = useState<string[]>(inicial.estilos);
-  const [portfolioLink, setPortfolioLink] = useState(inicial.portfolioLink);
 
-  const [disp, setDisp] = useState<boolean[][]>(
-    inicial.disponibilidade.length === PERIODOS.length ? inicial.disponibilidade : gradeVazia()
-  );
+  const [portfolioLink, setPortfolioLink] = useState(inicial.portfolioLink);
+  const [nicho, setNicho] = useState<string[]>(inicial.nicho);
 
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
@@ -58,20 +99,18 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
     });
   }
 
-  const toggleHorario = (p: number, d: number) =>
-    setDisp((atual) =>
-      atual.map((linha, i) => (i === p ? linha.map((v, j) => (j === d ? !v : v)) : linha))
-    );
-
-  const blocosLivres = disp.flat().filter(Boolean).length;
+  function alternarNicho(n: string) {
+    setNicho((a) => (a.includes(n) ? a.filter((x) => x !== n) : [...a, n]));
+  }
 
   // progresso por campo preenchido, não por aba visitada
   const checklist = [
     nome.trim() !== "",
     localizacao.trim() !== "",
+    nivelEdicao !== "",
+    setupPc !== "",
     softwares.length > 0,
-    estilos.length > 0,
-    blocosLivres > 0,
+    portfolioLink.trim() !== "",
   ];
   const progresso = Math.round((checklist.filter(Boolean).length / checklist.length) * 100);
 
@@ -91,10 +130,13 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
         nome,
         localizacao,
         headline,
+        bio,
+        nivelEdicao,
+        setupPc,
         softwares,
         estilos,
         portfolioLink,
-        disponibilidade: disp,
+        nicho,
       }),
     });
     setSalvando(false);
@@ -143,7 +185,7 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
         </p>
       )}
 
-      {/* ---- aba 1: identidade ---- */}
+      {/* ---- aba 1: identidade da forja ---- */}
       {aba === "identidade" && (
         <section className="reveal flex flex-col gap-8">
           <div>
@@ -204,11 +246,49 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
                 onChange={(e) => setHeadline(e.target.value)}
               />
             </div>
+
+            <div className="mt-4">
+              <label
+                htmlFor="bio"
+                className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
+              >
+                Bio curta
+              </label>
+              <textarea
+                id="bio"
+                rows={3}
+                className="field-input !pl-4 resize-none"
+                placeholder="Breve descrição da sua experiência ou estilo."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---- aba 2: a bancada (ferramentas e setup) ---- */}
+      {aba === "bancada" && (
+        <section className="reveal flex flex-col gap-8">
+          <div>
+            <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+              Nível de edição
+            </h2>
+            <p className="mt-1 text-sm text-muted">Sem julgamento — é só pra calibrar sua fila.</p>
+            <SeletorCartao opcoes={NIVEIS_EDICAO} valor={nivelEdicao} aoEscolher={setNivelEdicao} />
           </div>
 
           <div>
             <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
-              Sua bancada
+              Poder de processamento
+            </h2>
+            <p className="mt-1 text-sm text-muted">O setup que você usa pra editar.</p>
+            <SeletorCartao opcoes={SETUPS_PC} valor={setupPc} aoEscolher={setSetupPc} />
+          </div>
+
+          <div>
+            <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
+              Ferramentas
             </h2>
             <p className="mt-1 text-sm text-muted">Onde você edita. Pode marcar mais de um.</p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -225,12 +305,7 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
               ))}
             </div>
           </div>
-        </section>
-      )}
 
-      {/* ---- aba 2: arte ---- */}
-      {aba === "arte" && (
-        <section className="reveal flex flex-col gap-8">
           <div>
             <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
               Seu estilo
@@ -260,13 +335,18 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
               <p className="mt-2 text-xs text-muted-2">Máximo de {MAX_ESTILOS} estilos.</p>
             )}
           </div>
+        </section>
+      )}
 
+      {/* ---- aba 3: o portfólio (sua arte) ---- */}
+      {aba === "portfolio" && (
+        <section className="reveal flex flex-col gap-8">
           <div>
             <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
               Portfólio
             </h2>
             <p className="mt-1 text-sm text-muted">
-              Um link com trabalho seu — YouTube, Vimeo, Drive, o que tiver.
+              Um link com trabalho seu (YouTube, Vimeo, Drive) — de 2 a 2:30 min.
             </p>
             <input
               id="portfolio"
@@ -279,54 +359,30 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
               Depois da primeira entrega aprovada, seu portfólio aqui dentro se preenche sozinho.
             </p>
           </div>
-        </section>
-      )}
 
-      {/* ---- aba 3: forja ---- */}
-      {aba === "forja" && (
-        <section className="reveal flex flex-col gap-6">
           <div>
             <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-text">
-              Ritmo da forja
+              Nicho de atuação
             </h2>
-            <p className="mt-1 text-sm text-muted">
-              Quando você fica livre pra pegar trabalho. Dá pra mudar depois na agenda.
-            </p>
-          </div>
-
-          <div className="overflow-x-auto rounded-2xl border border-line bg-surface/60 p-4 lg:p-5">
-            <div className="min-w-[420px]">
-              <div className="mb-2 grid grid-cols-[64px_repeat(7,1fr)] gap-1.5">
-                <span />
-                {DIAS.map((d) => (
-                  <span key={d} className="text-center text-xs font-medium text-muted">
-                    {d}
-                  </span>
-                ))}
-              </div>
-
-              {PERIODOS.map((periodo, p) => (
-                <div
-                  key={periodo}
-                  className="mb-1.5 grid grid-cols-[64px_repeat(7,1fr)] items-center gap-1.5"
-                >
-                  <span className="text-xs text-muted-2">{periodo}</span>
-                  {DIAS.map((d, j) => (
-                    <CelulaDisponibilidade
-                      key={d}
-                      livre={disp[p][j]}
-                      onClick={() => toggleHorario(p, j)}
-                      label={`${periodo} de ${d}: ${disp[p][j] ? "livre" : "ocupado"}`}
-                    />
-                  ))}
-                </div>
-              ))}
+            <p className="mt-1 text-sm text-muted">Pode marcar os dois, se editar nos dois formatos.</p>
+            <div className="mt-3 flex flex-col gap-2">
+              {NICHOS.map((n) => {
+                const ativo = nicho.includes(n.rotulo);
+                return (
+                  <button
+                    key={n.rotulo}
+                    type="button"
+                    onClick={() => alternarNicho(n.rotulo)}
+                    aria-pressed={ativo}
+                    className={cartao(ativo)}
+                  >
+                    <p className="text-sm font-medium text-text">{n.rotulo}</p>
+                    <p className="mt-0.5 text-xs text-muted">{n.frase}</p>
+                  </button>
+                );
+              })}
             </div>
           </div>
-
-          <p className="text-xs text-muted-2">
-            {blocosLivres} {blocosLivres === 1 ? "bloco livre" : "blocos livres"} · toque pra alternar
-          </p>
 
           <button type="button" className="btn-gold" onClick={concluir} disabled={salvando}>
             {salvando ? "Salvando…" : "Concluir e ver a fila"}

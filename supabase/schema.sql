@@ -85,6 +85,14 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS disponibilidade JSONB;
 -- "não preencheu" de "preencheu deixando tudo vazio")
 ALTER TABLE users ADD COLUMN IF NOT EXISTS perfil_completo BOOLEAN NOT NULL DEFAULT false;
 
+-- auto-avaliação do editor + o que ele tem de máquina + em que formato edita.
+-- Sem CHECK de propósito: são rótulos de produto, mudam mais que schema, e um
+-- CHECK obrigaria migração a cada ajuste de texto.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS nivel_edicao TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS setup_pc TEXT;
+-- nicho é múltipla escolha (vertical e/ou horizontal) — array, não texto solto
+ALTER TABLE users ADD COLUMN IF NOT EXISTS nicho TEXT[];
+
 -- (a tabela avaliacoes fica lá embaixo, depois de pautas — ela referencia
 -- pautas e o Postgres exige que a tabela referenciada já exista)
 

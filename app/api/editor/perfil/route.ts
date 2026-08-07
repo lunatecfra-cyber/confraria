@@ -18,20 +18,26 @@ export async function POST(request: Request) {
   }
 
   // a grade tem que ser 3 períodos x 7 dias de booleanos — não confio no
-  // formato que veio do cliente
+  // formato que veio do cliente. undefined (não veio nada) é proposital: o
+  // onboarding não tem mais a Forja, então não manda grade — e undefined faz
+  // salvarOnboardingEditor preservar o que já foi marcado na Agenda
   const bruta = body?.disponibilidade;
-  const disponibilidade: boolean[][] =
+  const disponibilidade: boolean[][] | undefined =
     Array.isArray(bruta) && bruta.length === 3 && bruta.every((l) => Array.isArray(l) && l.length === 7)
       ? bruta.map((l: unknown[]) => l.map(Boolean))
-      : [];
+      : undefined;
 
   const r = await salvarOnboardingEditor(sessao.id, {
     nome: body.nome,
     localizacao: soTexto(body.localizacao),
     headline: soTexto(body.headline),
+    bio: soTexto(body.bio),
     softwares: soLista(body.softwares),
     estilos: soLista(body.estilos),
+    nivelEdicao: soTexto(body.nivelEdicao),
+    setupPc: soTexto(body.setupPc),
     portfolioLink: soTexto(body.portfolioLink),
+    nicho: soLista(body.nicho),
     disponibilidade,
   });
 

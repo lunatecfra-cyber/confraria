@@ -42,9 +42,13 @@ export type OnboardingEditor = {
   nome: string;
   localizacao: string;
   headline: string;
+  bio: string;
   softwares: string[];
   estilos: string[];
+  nivelEdicao: string;
+  setupPc: string;
   portfolioLink: string;
+  nicho: string[];
   disponibilidade: boolean[][];
   perfilCompleto: boolean;
 };
@@ -69,8 +73,8 @@ function normalizarGrade(valor: unknown): boolean[][] {
 
 export async function lerOnboardingEditor(userId: number): Promise<OnboardingEditor | null> {
   const [l] = await sql`
-    SELECT nome, localizacao, headline, softwares, estilos, portfolio_link,
-           disponibilidade, perfil_completo
+    SELECT nome, localizacao, headline, bio, softwares, estilos, nivel_edicao,
+           setup_pc, portfolio_link, nicho, disponibilidade, perfil_completo
     FROM users WHERE id = ${userId}
   `;
   if (!l) return null;
@@ -78,9 +82,13 @@ export async function lerOnboardingEditor(userId: number): Promise<OnboardingEdi
     nome: l.nome ?? "",
     localizacao: l.localizacao ?? "",
     headline: l.headline ?? "",
+    bio: l.bio ?? "",
     softwares: l.softwares ?? [],
     estilos: l.estilos ?? [],
+    nivelEdicao: l.nivel_edicao ?? "",
+    setupPc: l.setup_pc ?? "",
     portfolioLink: l.portfolio_link ?? "",
+    nicho: l.nicho ?? [],
     disponibilidade: normalizarGrade(l.disponibilidade),
     perfilCompleto: l.perfil_completo ?? false,
   };
@@ -92,9 +100,16 @@ export async function salvarOnboardingEditor(
     nome: string;
     localizacao?: string;
     headline?: string;
+    bio?: string;
     softwares?: string[];
     estilos?: string[];
+    nivelEdicao?: string;
+    setupPc?: string;
     portfolioLink?: string;
+    nicho?: string[];
+    // a Forja saiu do onboarding (vira /agenda) — undefined aqui significa
+    // "não mexe", pra reabrir o onboarding depois não apagar o que já foi
+    // marcado na agenda. Ver COALESCE abaixo.
     disponibilidade?: boolean[][];
   }
 ): Promise<{ ok: true } | { ok: false; erro: string }> {
@@ -105,18 +120,26 @@ export async function salvarOnboardingEditor(
   // recusar aqui só perderia o resto do que a pessoa preencheu
   const estilos = (dados.estilos ?? []).slice(0, 3);
 
+  // sql.json(x) quando há grade nova, NULL quando não há — COALESCE mantém o
+  // valor atual da coluna nesse segundo caso, em vez de zerar
+  const gradeNova = dados.disponibilidade ? sql.json(dados.disponibilidade) : null;
+
   await sql`
     UPDATE users SET
       nome = ${nome},
       localizacao = ${dados.localizacao?.trim() || null},
       headline = ${dados.headline?.trim() || null},
+      bio = ${dados.bio?.trim() || null},
       softwares = ${dados.softwares ?? []},
       estilos = ${estilos},
+      nivel_edicao = ${dados.nivelEdicao?.trim() || null},
+      setup_pc = ${dados.setupPc?.trim() || null},
       portfolio_link = ${dados.portfolioLink?.trim() || null},
+      nicho = ${dados.nicho ?? []},
       -- sql.json e nao JSON.stringify: com a string, o Postgres guardava um
       -- JSON *string* dentro do jsonb (duplamente codificado) e a grade
       -- voltava como texto, nao como array
-      disponibilidade = ${sql.json(dados.disponibilidade ?? [])},
+      disponibilidade = COALESCE(${gradeNova}, disponibilidade),
       perfil_completo = true
     WHERE id = ${userId}
   `;

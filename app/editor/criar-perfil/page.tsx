@@ -14,9 +14,13 @@ export default async function CriarPerfilEditorPage() {
     nome: sessao.nome,
     localizacao: "",
     headline: "",
+    bio: "",
     softwares: [],
     estilos: [],
+    nivelEdicao: "",
+    setupPc: "",
     portfolioLink: "",
+    nicho: [],
     disponibilidade: [],
     perfilCompleto: false,
   };

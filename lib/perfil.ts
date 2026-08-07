@@ -27,6 +27,28 @@ export const ESTILOS = [
 
 export const MAX_ESTILOS = 3;
 
+export type OpcaoComFrase = { rotulo: string; frase: string };
+
+// auto-avaliação do editor no onboarding — texto solto de propósito (ver
+// comentário em supabase/schema.sql), então rotulo é o próprio valor salvo
+export const NIVEIS_EDICAO: OpcaoComFrase[] = [
+  { rotulo: "Iniciante", frase: "Tô aprendendo do zero, sei nada ainda" },
+  { rotulo: "Intermediário", frase: "Já editei alguns vídeos para candidatos e canais" },
+  { rotulo: "Avançado", frase: "Dominador das ferramentas, edito de olhos fechados" },
+];
+
+export const SETUPS_PC: OpcaoComFrase[] = [
+  { rotulo: "📱 Celular/Tablet", frase: "Uso CapCut móvel e aplicativos rápidos" },
+  { rotulo: "🥔 PC Batata", frase: "Chora e trava se eu tentar abrir o Premiere" },
+  { rotulo: "⚙️ PC Médio", frase: "Dá pro gasto usando proxies e paciência" },
+  { rotulo: "🚀 PC Monstro", frase: "Renderiza 4K liso sem reclamar" },
+];
+
+export const NICHOS: OpcaoComFrase[] = [
+  { rotulo: "Vertical (9:16)", frase: "Reels, Shorts e TikToks dinâmicos de alta retenção" },
+  { rotulo: "Horizontal (16:9)", frase: "Documentários, vídeos de canal e institucionais sóbrios" },
+];
+
 export const NIVEIS: { nome: Nivel; minimo: number }[] = [
   { nome: "Aprendiz", minimo: 0 },
   { nome: "Oficial", minimo: 10 },
