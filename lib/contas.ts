@@ -81,7 +81,19 @@ export async function autenticarOuCriarContaGoogle(dados: {
   const [porGoogleId] = await sql`
     SELECT id, apelido, nome, email, papel FROM users WHERE google_id = ${dados.googleId}
   `;
-  if (porGoogleId) return { ok: true, conta: porGoogleId as ContaUsuario, novo: false };
+  if (porGoogleId) {
+    // essa conta Google já existe com OUTRO papel — sem essa checagem, o
+    // login reaproveitava ela silenciosamente e ignorava o papel escolhido
+    // agora (ex: escolheu "editor" mas caía direto na conta porta-voz antiga)
+    if (porGoogleId.papel !== dados.papel) {
+      const outroPapel = porGoogleId.papel === "editor" ? "editor" : "porta-voz";
+      return {
+        ok: false,
+        erro: `Essa conta Google já é ${outroPapel} na Oficina Amarela. Entra por esse caminho, ou usa outra conta Google.`,
+      };
+    }
+    return { ok: true, conta: porGoogleId as ContaUsuario, novo: false };
+  }
 
   const [porEmail] = await sql`SELECT id FROM users WHERE lower(email) = lower(${dados.email})`;
   if (porEmail) {
