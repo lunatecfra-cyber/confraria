@@ -1,17 +1,8 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { aplicarPerfilLocal, type Candidato } from "@/lib/candidatos";
+import type { Candidato } from "@/lib/candidatos";
 import { LocalProximidade } from "@/components/local-proximidade";
 import { IconInstagram, IconTiktok, IconX, IconYoutube } from "@/components/icones-redes";
 
-export function DadosCandidato({ candidato }: { candidato: Candidato }) {
-  const [cand, setCand] = useState(candidato);
-
-  useEffect(() => {
-    setCand(aplicarPerfilLocal(candidato));
-  }, [candidato]);
-
+export function DadosCandidato({ candidato: cand }: { candidato: Candidato }) {
   const redes = cand.redes;
   const temRedes = !!(redes?.instagram || redes?.youtube || redes?.tiktok || redes?.x);
 

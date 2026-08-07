@@ -23,6 +23,10 @@ export type Candidato = {
   desde?: string; // na guilda desde quando (porta-voz)
 };
 
+// tint padrão pra candidato real (sem noção de "proximidade" — isso sempre
+// foi um dado de demonstração dos 2 CANDIDATOS fake abaixo)
+export const TINT_PADRAO = "linear-gradient(135deg,#3a3a42,#12121a)";
+
 // eleição de 2026 é geral (estadual/federal) — sem prefeito/vereador, que são municipais (2028)
 export const CARGOS_POLITICOS = [
   "Deputado Estadual",
@@ -146,66 +150,6 @@ export const ESTADOS_BRASIL = [
   { uf: "SE", nome: "Sergipe" },
   { uf: "TO", nome: "Tocantins" },
 ] as const;
-
-// perfil que o próprio candidato monta no primeiro login (sem backend real ainda,
-// fica salvo no navegador dele) — sobrepõe os dados fake de CANDIDATOS
-const PERFIL_LOCAL_KEY = "confraria_perfil_candidato";
-
-export type PerfilCandidatoLocal = {
-  nome: string; // chave interna — sempre o nome da conta logada, não é o que aparece na tela
-  nomeExibicao?: string; // o nome de verdade que o candidato digitou, é esse que aparece
-  foto?: string;
-  cargo?: string;
-  disputaPor?: string;
-  anoEleicao?: string;
-  redes?: RedesSociais;
-  tomComunicacao?: string;
-  bandeiras?: string[];
-  palavrasChave?: string[];
-  local?: string;
-  bio?: string;
-};
-
-export function salvarPerfilCandidatoLocal(dados: PerfilCandidatoLocal) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(PERFIL_LOCAL_KEY, JSON.stringify(dados));
-}
-
-export function lerPerfilCandidatoLocal(): PerfilCandidatoLocal | null {
-  if (typeof window === "undefined") return null;
-  const bruto = window.localStorage.getItem(PERFIL_LOCAL_KEY);
-  if (!bruto) return null;
-  try {
-    return JSON.parse(bruto) as PerfilCandidatoLocal;
-  } catch {
-    return null;
-  }
-}
-
-export function temPerfilCandidatoCompleto(nome: string): boolean {
-  const local = lerPerfilCandidatoLocal();
-  return local?.nome === nome;
-}
-
-// aplica o perfil salvo localmente (se for do mesmo candidato) por cima do dado fake
-export function aplicarPerfilLocal(cand: Candidato): Candidato {
-  const local = lerPerfilCandidatoLocal();
-  if (!local || local.nome !== cand.nome) return cand;
-  return {
-    ...cand,
-    nome: local.nomeExibicao?.trim() || cand.nome,
-    foto: local.foto ?? cand.foto,
-    cargo: local.cargo ?? cand.cargo,
-    disputaPor: local.disputaPor ?? cand.disputaPor,
-    anoEleicao: local.anoEleicao ?? cand.anoEleicao,
-    redes: local.redes ?? cand.redes,
-    tomComunicacao: local.tomComunicacao ?? cand.tomComunicacao,
-    bandeiras: local.bandeiras ?? cand.bandeiras,
-    palavrasChave: local.palavrasChave ?? cand.palavrasChave,
-    local: local.local ?? cand.local,
-    bio: local.bio ?? cand.bio,
-  };
-}
 
 export const CANDIDATOS: Record<string, Candidato> = {
   Busnelo: {

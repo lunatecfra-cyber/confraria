@@ -11,6 +11,9 @@ export type Formato = "short" | "longo";
 export type Pauta = {
   id: string;
   portaVoz: string;
+  // só existe pra pauta real (vinda do banco) — usado pra buscar o perfil
+  // de verdade do porta-voz em vez de casar por nome (que pode repetir)
+  portaVozApelido?: string;
   titulo: string;
   formato: Formato;
   brief: {

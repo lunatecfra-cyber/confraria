@@ -10,6 +10,7 @@ import type { Formato, Pauta, StatusPauta } from "@/lib/pautas";
 type LinhaPauta = {
   id: number;
   porta_voz_nome: string;
+  porta_voz_apelido: string;
   titulo: string;
   formato: Formato;
   brief_tom: string | null;
@@ -31,6 +32,7 @@ function paraPauta(l: LinhaPauta): Pauta {
   return {
     id: `db-${l.id}`,
     portaVoz: l.porta_voz_nome,
+    portaVozApelido: l.porta_voz_apelido,
     titulo: l.titulo,
     formato: l.formato,
     brief: {
@@ -50,7 +52,7 @@ function paraPauta(l: LinhaPauta): Pauta {
 }
 
 const SELECT_BASE = sql`
-  SELECT p.id, u.nome AS porta_voz_nome, p.titulo, p.formato,
+  SELECT p.id, u.nome AS porta_voz_nome, u.apelido AS porta_voz_apelido, p.titulo, p.formato,
          p.brief_tom, p.brief_cor, p.brief_fonte, p.brief_refs,
          p.drive_link, p.status, p.reservada_ate, p.entrega_link,
          p.notas_inspetor, p.criada_em,

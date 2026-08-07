@@ -93,6 +93,19 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS setup_pc TEXT;
 -- nicho é múltipla escolha (vertical e/ou horizontal) — array, não texto solto
 ALTER TABLE users ADD COLUMN IF NOT EXISTS nicho TEXT[];
 
+-- Perfil do candidato (porta-voz). Igual ao bloco do editor acima: rótulos
+-- de produto, sem CHECK de propósito. foto_url pode ser uma URL do Google
+-- (curta) ou um data URL de upload manual (grande) — TEXT aceita os dois.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS foto_url TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS cargo TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS disputa_por TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS ano_eleicao TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS bandeiras TEXT[];
+ALTER TABLE users ADD COLUMN IF NOT EXISTS tom_comunicacao TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS palavras_chave TEXT[];
+-- redes sociais: objeto {instagram, youtube, tiktok, x}, todos opcionais
+ALTER TABLE users ADD COLUMN IF NOT EXISTS redes_sociais JSONB;
+
 -- (a tabela avaliacoes fica lá embaixo, depois de pautas — ela referencia
 -- pautas e o Postgres exige que a tabela referenciada já exista)
 

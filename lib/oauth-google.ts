@@ -29,7 +29,7 @@ export function montarUrlAutorizacao(redirectUri: string, state: string) {
   return `${AUTORIZAR_URL}?${params.toString()}`;
 }
 
-export type PerfilGoogle = { googleId: string; email: string; nome: string };
+export type PerfilGoogle = { googleId: string; email: string; nome: string; foto?: string };
 
 export async function trocarCodigoPorPerfil(
   code: string,
@@ -57,8 +57,18 @@ export async function trocarCodigoPorPerfil(
     headers: { Authorization: `Bearer ${access_token}` },
   });
   if (!respPerfil.ok) return null;
-  const perfil = (await respPerfil.json()) as { sub?: string; email?: string; name?: string };
+  const perfil = (await respPerfil.json()) as {
+    sub?: string;
+    email?: string;
+    name?: string;
+    picture?: string;
+  };
   if (!perfil.sub || !perfil.email) return null;
 
-  return { googleId: perfil.sub, email: perfil.email, nome: perfil.name ?? perfil.email };
+  return {
+    googleId: perfil.sub,
+    email: perfil.email,
+    nome: perfil.name ?? perfil.email,
+    foto: perfil.picture,
+  };
 }

@@ -1,7 +1,4 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { aplicarPerfilLocal, type Candidato } from "@/lib/candidatos";
+import type { Candidato } from "@/lib/candidatos";
 
 export function NomeCandidato({
   candidato,
@@ -10,11 +7,5 @@ export function NomeCandidato({
   candidato: Candidato;
   className?: string;
 }) {
-  const [cand, setCand] = useState(candidato);
-
-  useEffect(() => {
-    setCand(aplicarPerfilLocal(candidato));
-  }, [candidato]);
-
-  return <h1 className={className}>{cand.nome}</h1>;
+  return <h1 className={className}>{candidato.nome}</h1>;
 }

@@ -4,11 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PAUTAS, ROTULO_FORMATO, type Pauta } from "@/lib/pautas";
-import { getCandidato, iniciais } from "@/lib/candidatos";
+import { iniciais, type Candidato } from "@/lib/candidatos";
 import { LocalProximidade } from "@/components/local-proximidade";
-import { Selo, Chip } from "@/components/fila-pautas";
+import { Selo, Chip, candidatoDaPauta } from "@/components/fila-pautas";
 
-export function FilaInspetor({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
+export function FilaInspetor({
+  pautasReais = [],
+  candidatosPorApelido = {},
+}: {
+  pautasReais?: Pauta[];
+  /** perfil real dos porta-vozes das pautas acima, por apelido (vem do banco) */
+  candidatosPorApelido?: Record<string, Candidato>;
+}) {
   const router = useRouter();
   const [pautas, setPautas] = useState<Pauta[]>([...pautasReais, ...PAUTAS]);
   const [erro, setErro] = useState("");
@@ -87,6 +94,7 @@ export function FilaInspetor({ pautasReais = [] }: { pautasReais?: Pauta[] }) {
               pauta={p}
               onAprovar={(estrelas) => aprovar(p.id, estrelas)}
               onPedirReedicao={(nota) => pedirReedicao(p.id, nota)}
+              candidatosPorApelido={candidatosPorApelido}
             />
           ))}
         </ul>
@@ -99,16 +107,18 @@ function CardRevisao({
   pauta: p,
   onAprovar,
   onPedirReedicao,
+  candidatosPorApelido = {},
 }: {
   pauta: Pauta;
   onAprovar: (estrelas?: number) => void;
   onPedirReedicao: (nota: string) => void;
+  candidatosPorApelido?: Record<string, Candidato>;
 }) {
   const [abrindoReedicao, setAbrindoReedicao] = useState(false);
   const [nota, setNota] = useState("");
   const [estrelas, setEstrelas] = useState<number | undefined>(undefined);
   const [aviso, setAviso] = useState("");
-  const cand = getCandidato(p.portaVoz);
+  const cand = candidatoDaPauta(p, candidatosPorApelido);
 
   function confirmarReedicao() {
     if (!nota.trim()) {

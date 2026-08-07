@@ -3,7 +3,6 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { temPerfilCandidatoCompleto } from "@/lib/candidatos";
 
 function LoginFormConteudo() {
   const router = useRouter();
@@ -42,13 +41,9 @@ function LoginFormConteudo() {
       return;
     }
 
-    router.push(
-      dados.papel === "editor"
-        ? "/editor"
-        : temPerfilCandidatoCompleto(dados.nome)
-          ? "/porta-voz"
-          : "/porta-voz/criar-perfil"
-    );
+    // igual ao editor: sempre cai na home do papel, sem checar perfil
+    // completo aqui — a própria página resolve o que mostrar
+    router.push(dados.papel === "editor" ? "/editor" : "/porta-voz");
     router.refresh();
   }
 

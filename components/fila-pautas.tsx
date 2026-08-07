@@ -9,10 +9,19 @@ import {
   ROTULO_STATUS,
   type Pauta,
 } from "@/lib/pautas";
-import { getCandidato, iniciais } from "@/lib/candidatos";
+import { getCandidato, iniciais, type Candidato } from "@/lib/candidatos";
 import { LocalProximidade } from "@/components/local-proximidade";
 
 const PRAZO_HORAS = 24;
+
+// pauta real (tem apelido) busca o perfil de verdade no mapa vindo do
+// servidor; pauta de demonstração (sem apelido) usa o CANDIDATOS fake de
+// sempre. Sem isso, toda pauta real aparecia com avatar cinza/cargo vazio —
+// o mapa é quem faz o editor ver o perfil que o porta-voz de fato preencheu.
+export function candidatoDaPauta(p: Pauta, mapa: Record<string, Candidato>): Candidato {
+  if (p.portaVozApelido && mapa[p.portaVozApelido]) return mapa[p.portaVozApelido];
+  return getCandidato(p.portaVoz);
+}
 
 /**
  * Match: compatibilidade do editor com a pauta, medida pelo que ele JÁ
@@ -71,12 +80,15 @@ export function FilaPautas({
   pautasReais = [],
   minhaAtual = null,
   entregas = [],
+  candidatosPorApelido = {},
 }: {
   pautasReais?: Pauta[];
   /** pauta que o editor já tem em mãos (vem do banco) */
   minhaAtual?: Pauta | null;
   /** entregas aprovadas do editor — é o que alimenta o match */
   entregas?: Pauta[];
+  /** perfil real dos porta-vozes das pautas acima, por apelido (vem do banco) */
+  candidatosPorApelido?: Record<string, Candidato>;
 }) {
   const router = useRouter();
   // pautas criadas de verdade pelos porta-vozes (vindas do banco) entram na
@@ -375,6 +387,7 @@ export function FilaPautas({
               onPassar={() => setDeckIndex((i) => i + 1)}
               onReservar={() => reservar(cartaAtual.id)}
               entregas={entregas}
+              candidatosPorApelido={candidatosPorApelido}
             />
           ) : (
             <div className="w-full max-w-lg rounded-2xl border border-dashed border-line p-12 text-center text-sm text-muted">
@@ -391,7 +404,7 @@ export function FilaPautas({
       <ul className="mt-6 flex flex-col gap-3">
         {disponiveis.map((p) => {
           const livre = p.status === "disponivel";
-          const cand = getCandidato(p.portaVoz);
+          const cand = candidatoDaPauta(p, candidatosPorApelido);
           const match = calcularMatch(p, entregas);
           return (
             <li
@@ -492,6 +505,7 @@ function CartaBaralho({
   onPassar,
   onReservar,
   entregas = [],
+  candidatosPorApelido = {},
 }: {
   pauta: Pauta;
   minha: boolean;
@@ -499,8 +513,9 @@ function CartaBaralho({
   onPassar: () => void;
   onReservar: () => void;
   entregas?: Pauta[];
+  candidatosPorApelido?: Record<string, Candidato>;
 }) {
-  const cand = getCandidato(pauta.portaVoz);
+  const cand = candidatoDaPauta(pauta, candidatosPorApelido);
   const match = calcularMatch(pauta, entregas);
 
   return (

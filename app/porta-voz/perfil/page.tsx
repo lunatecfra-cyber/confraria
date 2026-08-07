@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PAUTAS, ROTULO_STATUS } from "@/lib/pautas";
 import { getCandidato } from "@/lib/candidatos";
+import { lerCandidatoProprio } from "@/lib/candidato-db";
 import { lerSessao } from "@/lib/sessao-servidor";
 import { Stat } from "@/components/stat";
 import { Card } from "@/components/card";
@@ -14,7 +15,9 @@ export const metadata: Metadata = { title: "Meu Perfil — Oficina Amarela" };
 
 export default async function PerfilPortaVozPage() {
   const sessao = await lerSessao();
-  const cand = getCandidato(sessao?.nome ?? "");
+  const cand = sessao
+    ? ((await lerCandidatoProprio(sessao.id)) ?? getCandidato(sessao.nome))
+    : getCandidato("");
   const minhas = PAUTAS.filter((p) => p.portaVoz === sessao?.nome);
   const naFila = minhas.filter((p) => p.status === "disponivel").length;
   const emProducao = minhas.filter((p) =>

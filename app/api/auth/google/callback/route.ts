@@ -33,6 +33,7 @@ export async function GET(request: Request) {
     email: perfilGoogle.email,
     nome: perfilGoogle.nome,
     papel: estado.papel,
+    foto: perfilGoogle.foto,
   });
   if (!resultado.ok) {
     return erroRedirect(url.origin, resultado.erro);

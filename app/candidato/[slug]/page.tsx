@@ -4,11 +4,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { PAUTAS, ROTULO_FORMATO, ROTULO_STATUS } from "@/lib/pautas";
-import { getCandidatoPorSlug } from "@/lib/candidatos";
+import { getCandidatoPorSlug, type Candidato } from "@/lib/candidatos";
+import { lerCandidatoPublico } from "@/lib/candidato-db";
 import { Stat } from "@/components/stat";
 import { AvatarCandidato } from "@/components/avatar-candidato";
 import { DadosCandidato } from "@/components/dados-candidato";
 import { NomeCandidato } from "@/components/nome-candidato";
+
+// os 2 candidatos fake de demonstração primeiro (têm slug fixo), senão
+// procura no banco por apelido — apelido já é único e URL-safe, dobra de slug
+async function buscarCandidato(slug: string): Promise<Candidato | null> {
+  return getCandidatoPorSlug(slug) ?? (await lerCandidatoPublico(slug));
+}
 
 export async function generateMetadata({
   params,
@@ -16,7 +23,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const cand = getCandidatoPorSlug(slug);
+  const cand = await buscarCandidato(slug);
   return { title: cand ? `${cand.nome} — Oficina Amarela` : "Oficina Amarela" };
 }
 
@@ -26,7 +33,7 @@ export default async function CandidatoPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const cand = getCandidatoPorSlug(slug);
+  const cand = await buscarCandidato(slug);
   if (!cand) notFound();
 
   const pautas = PAUTAS.filter((p) => p.portaVoz === cand.nome);

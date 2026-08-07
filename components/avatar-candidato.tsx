@@ -1,24 +1,15 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { aplicarPerfilLocal, iniciais, type Candidato } from "@/lib/candidatos";
+import { iniciais, type Candidato } from "@/lib/candidatos";
 
 export function AvatarCandidato({
-  candidato,
+  candidato: cand,
   className = "h-24 w-24 text-3xl",
 }: {
   candidato: Candidato;
   className?: string;
 }) {
-  const [cand, setCand] = useState(candidato);
-
-  useEffect(() => {
-    setCand(aplicarPerfilLocal(candidato));
-  }, [candidato]);
-
   if (cand.foto) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- foto local (data URL), sem otimização de servidor
+      // eslint-disable-next-line @next/next/no-img-element -- foto do Google ou data URL de upload, sem otimização de servidor
       <img
         src={cand.foto}
         alt={cand.nome}

@@ -76,6 +76,7 @@ export async function autenticarOuCriarContaGoogle(dados: {
   email: string;
   nome: string;
   papel: Papel;
+  foto?: string;
 }): Promise<{ ok: true; conta: ContaUsuario; novo: boolean } | { ok: false; erro: string }> {
   const [porGoogleId] = await sql`
     SELECT id, apelido, nome, email, papel FROM users WHERE google_id = ${dados.googleId}
@@ -88,9 +89,11 @@ export async function autenticarOuCriarContaGoogle(dados: {
   }
 
   const apelido = await gerarApelidoUnico(dados.email);
+  // foto só é gravada aqui, na criação — login seguinte não sobrescreve,
+  // pra não apagar uma foto que o candidato tenha trocado depois
   const [linha] = await sql`
-    INSERT INTO users (apelido, nome, email, google_id, papel)
-    VALUES (${apelido}, ${dados.nome}, ${dados.email}, ${dados.googleId}, ${dados.papel})
+    INSERT INTO users (apelido, nome, email, google_id, papel, foto_url)
+    VALUES (${apelido}, ${dados.nome}, ${dados.email}, ${dados.googleId}, ${dados.papel}, ${dados.foto ?? null})
     RETURNING id
   `;
 
