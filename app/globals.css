@@ -225,6 +225,157 @@ body {
   transform: translateX(140%);
 }
 
+/* ────────────────────────────────────────────────────────────
+   Cartas de entrada — flip 3D + tilt no hover
+   ──────────────────────────────────────────────────────────── */
+
+.carta-perspective {
+  perspective: 1200px;
+  aspect-ratio: 3 / 4;
+}
+
+.carta {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.9s var(--ease-guild);
+}
+
+.carta.virada {
+  transform: rotateY(180deg);
+}
+
+/* hover 3D: inclinação dinâmica (CSS custom properties setadas via JS) */
+.carta.virada {
+  transition: transform 0.9s var(--ease-guild), box-shadow 0.35s var(--ease-guild);
+}
+
+.carta.virada:hover {
+  transform: rotateY(calc(180deg + var(--ry, 0deg))) rotateX(var(--rx, 0deg));
+}
+
+.carta-frente,
+.carta-verso {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.carta-frente {
+  transform: rotateY(180deg);
+}
+
+/* borda ornamental decorativa (verso da carta) */
+.carta-borda {
+  position: relative;
+  border: 1px solid var(--color-gold-lo);
+  border-radius: 1rem;
+  background: var(--color-ink-2);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    0 1px 0 rgba(244, 206, 31, 0.06) inset;
+}
+
+/* cantoneiras douradas decorativas */
+.carta-borda::before,
+.carta-borda::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(244, 206, 31, 0.18);
+  border-radius: calc(1rem - 4px);
+  pointer-events: none;
+}
+
+/* selo central do verso — brilho pulsante */
+.carta-selo {
+  position: relative;
+}
+
+.carta-selo::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 206, 31, 0.12);
+  animation: selo-pulse 2.5s var(--ease-guild) infinite;
+}
+
+/* linha decorativa vertical no verso (entre selo e texto) */
+.carta-verso-linha {
+  position: absolute;
+  bottom: 20%;
+  left: 50%;
+  width: 1px;
+  height: 30%;
+  background: linear-gradient(to bottom, transparent, rgba(244, 206, 31, 0.15), transparent);
+  pointer-events: none;
+}
+
+/* brilho que varre a carta ao hover (frente) */
+.carta-brilho {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 1rem;
+  pointer-events: none;
+}
+
+.carta-brilho::after {
+  content: "";
+  position: absolute;
+  inset: -60% -40%;
+  background: linear-gradient(75deg, transparent 42%, rgba(244, 206, 31, 0.08) 50%, transparent 58%);
+  transform: translateX(-140%);
+  transition: transform 0.75s var(--ease-guild);
+}
+
+.carta.virada:hover .carta-brilho::after {
+  transform: translateX(140%);
+}
+
+/* glint sweep no botão CTA da carta */
+.carta-cta {
+  position: relative;
+  overflow: hidden;
+}
+
+.carta-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s var(--ease-guild);
+  pointer-events: none;
+}
+
+.carta-cta:hover::after {
+  transform: translateX(100%);
+}
+
+@keyframes selo-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.08); opacity: 0.2; }
+}
+
+/* micro-animação: itens de responsabilidade surgem após o flip */
+@keyframes carta-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.carta.virada .carta-item-stagger {
+  opacity: 0;
+  animation: carta-item-in 0.4s var(--ease-guild) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     animation: none;
@@ -238,5 +389,30 @@ body {
 
   .role-card::after {
     transition: none;
+  }
+
+  .carta {
+    transition: none;
+  }
+
+  .carta.virada {
+    transition: none;
+  }
+
+  .carta-selo::after {
+    animation: none;
+  }
+
+  .carta-brilho::after {
+    transition: none;
+  }
+
+  .carta-cta::after {
+    transition: none;
+  }
+
+  .carta-item-stagger {
+    animation: none;
+    opacity: 1;
   }
 }

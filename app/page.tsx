@@ -3,8 +3,7 @@ import { Logo } from "@/components/logo";
 
 const ROLES = [
   {
-    // protótipo: vai direto pra área. Na versão real vira redirect pós-login/cadastro.
-    href: "/porta-voz",
+    href: "/entrar",
     title: "Porta-voz",
     desc: "Você tem o vídeo bruto e precisa que alguém edite.",
     icon: (
@@ -12,7 +11,7 @@ const ROLES = [
     ),
   },
   {
-    href: "/editor",
+    href: "/entrar",
     title: "Editor de vídeo",
     desc: "Você pega pautas da fila, edita e entrega.",
     icon: (

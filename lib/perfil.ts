@@ -27,6 +27,72 @@ export const ESTILOS = [
 
 export const MAX_ESTILOS = 3;
 
+// tags de especialidade do editor — usadas no onboarding e no formulário de
+// edição de perfil. servem de base pra matching com porta-vozes/candidatos.
+// organizadas por categoria; o componente pode renderizar por seção ou flat.
+export const HEADLINES: { categoria: string; tags: readonly string[] }[] = [
+  {
+    categoria: "Tipo de edição",
+    tags: [
+      "Edição dinâmica",
+      "Cortes impactantes",
+      "Storytelling visual",
+      "Montagem cinematográfica",
+      "Corte de live / podcast",
+      "Vlog e conteúdo autoral",
+      "Compilado / highlights",
+      "Vídeo de reação",
+    ],
+  },
+  {
+    categoria: "Formato",
+    tags: [
+      "Criação de Shorts/Reels",
+      "Edição vertical",
+      "Edição horizontal",
+      "Vídeo curto (até 60s)",
+      "Vídeo médio (1–5 min)",
+      "Longa-metragem / documentário",
+    ],
+  },
+  {
+    categoria: "Estilo e ritmo",
+    tags: [
+      "Ritmo rápido",
+      "Ritmo calmo / pausado",
+      "Pós-produção completa",
+      "Colorização e finalização",
+      "Motion design",
+      "Letreiros e tipografia animada",
+    ],
+  },
+  {
+    categoria: "Áudio e trilha",
+    tags: [
+      "Trilha e sincronização",
+      "Mixagem e limpeza de áudio",
+      "Sound design",
+      "Seleção musical",
+    ],
+  },
+  {
+    categoria: "Nicho político",
+    tags: [
+      "Propaganda eleitoral",
+      "Discurso ao vivo",
+      "Clipe de campanha",
+      "Bastidores de campanha",
+      "Debate político",
+      "Cobertura de eventos",
+    ],
+  },
+];
+
+// flat list de todas as tags de headline (pra iteração simples)
+export const TODAS_HEADLINES = HEADLINES.flatMap((g) => g.tags);
+
+export const MAX_HEADLINES = 5;
+
 export type OpcaoComFrase = { rotulo: string; frase: string };
 
 // auto-avaliação do editor no onboarding — texto solto de propósito (ver
@@ -95,7 +161,7 @@ export type ItemHistorico = {
 export type PerfilEditor = {
   apelido: string;
   nome: string;
-  headline: string;
+  headline: string[];
   local: string;
   desde: string;
   bio: string;
@@ -112,7 +178,7 @@ export type PerfilEditor = {
 export const PERFIL_EDITOR: PerfilEditor = {
   apelido: "jr.eneias",
   nome: "Jr. Eneias",
-  headline: "Editor de vídeo · cortes de impacto",
+  headline: ["Editor de vídeo", "Cortes impactantes"],
   local: "Petrópolis, RJ",
   desde: "março de 2026",
   bio: "Corto rápido e no ritmo. Especialidade em short de reação e clipe de fala forte. Gosto de tom direto, legenda bold e áudio limpo.",

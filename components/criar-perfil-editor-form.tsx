@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ESTILOS,
+  HEADLINES,
   MAX_ESTILOS,
+  MAX_HEADLINES,
   NICHOS,
   NIVEIS_EDICAO,
   SETUPS_PC,
@@ -12,6 +14,15 @@ import {
   type OpcaoComFrase,
 } from "@/lib/perfil";
 import type { OnboardingEditor } from "@/lib/perfil-db";
+import { SelectEstadoCidade } from "@/components/select-estado-cidade";
+
+/** extrai UF e cidade de um valor salvo no formato "Cidade/UF" ou "Cidade, UF" */
+function parseLocalizacao(valor: string): { uf: string; cidade: string } {
+  if (!valor) return { uf: "", cidade: "" };
+  const match = valor.match(/^(.+?)[/,]\s*([A-Z]{2})$/);
+  if (match) return { uf: match[2], cidade: match[1].trim() };
+  return { uf: "", cidade: "" };
+}
 
 type Aba = "identidade" | "bancada" | "portfolio";
 
@@ -72,8 +83,10 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
   const [aba, setAba] = useState<Aba>("identidade");
 
   const [nome, setNome] = useState(inicial.nome);
-  const [localizacao, setLocalizacao] = useState(inicial.localizacao);
-  const [headline, setHeadline] = useState(inicial.headline);
+  const parsed = parseLocalizacao(inicial.localizacao);
+  const [estadoUf, setEstadoUf] = useState(parsed.uf);
+  const [cidadeNome, setCidadeNome] = useState(parsed.cidade);
+  const [headline, setHeadline] = useState<string[]>(inicial.headline);
   const [bio, setBio] = useState(inicial.bio);
 
   const [nivelEdicao, setNivelEdicao] = useState(inicial.nivelEdicao);
@@ -103,10 +116,18 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
     setNicho((a) => (a.includes(n) ? a.filter((x) => x !== n) : [...a, n]));
   }
 
+  function alternarHeadline(h: string) {
+    setHeadline((a) => {
+      if (a.includes(h)) return a.filter((x) => x !== h);
+      if (a.length >= MAX_HEADLINES) return a; // teto
+      return [...a, h];
+    });
+  }
+
   // progresso por campo preenchido, não por aba visitada
   const checklist = [
     nome.trim() !== "",
-    localizacao.trim() !== "",
+    cidadeNome.trim() !== "",
     nivelEdicao !== "",
     setupPc !== "",
     softwares.length > 0,
@@ -128,7 +149,7 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         nome,
-        localizacao,
+        localizacao: cidadeNome ? `${cidadeNome}/${estadoUf}` : "",
         headline,
         bio,
         nivelEdicao,
@@ -216,35 +237,54 @@ export function CriarPerfilEditorForm({ inicial }: { inicial: OnboardingEditor }
             </div>
 
             <div className="mt-4">
-              <label
-                htmlFor="localizacao"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
-              >
-                Cidade
-              </label>
-              <input
-                id="localizacao"
-                className="field-input !pl-4"
-                placeholder="Ex: Petrópolis, RJ"
-                value={localizacao}
-                onChange={(e) => setLocalizacao(e.target.value)}
+              <SelectEstadoCidade
+                valorEstado={estadoUf}
+                valorCidade={cidadeNome}
+                onChangeEstado={setEstadoUf}
+                onChangeCidade={setCidadeNome}
               />
             </div>
 
             <div className="mt-4">
-              <label
-                htmlFor="headline"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
-              >
-                Headline
+              <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted">
+                Especialidades
               </label>
-              <input
-                id="headline"
-                className="field-input !pl-4"
-                placeholder="Ex: Editor de vídeo · cortes de impacto"
-                value={headline}
-                onChange={(e) => setHeadline(e.target.value)}
-              />
+              <p className="mb-2 text-xs text-muted-2">
+                Até {MAX_HEADLINES}. É o que casa você com o porta-voz na hora do match.
+              </p>
+              <div className="flex flex-col gap-3">
+                {HEADLINES.map((grupo) => (
+                  <div key={grupo.categoria}>
+                    <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-2">
+                      {grupo.categoria}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {grupo.tags.map((h) => {
+                        const ativo = headline.includes(h);
+                        const bloqueado = !ativo && headline.length >= MAX_HEADLINES;
+                        return (
+                          <button
+                            key={h}
+                            type="button"
+                            onClick={() => {
+                              alternarHeadline(h);
+                              setErro("");
+                            }}
+                            disabled={bloqueado}
+                            aria-pressed={ativo}
+                            className={chip(ativo, bloqueado)}
+                          >
+                            {h}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {headline.length >= MAX_HEADLINES && (
+                <p className="mt-2 text-xs text-muted-2">Máximo de {MAX_HEADLINES} especialidades.</p>
+              )}
             </div>
 
             <div className="mt-4">

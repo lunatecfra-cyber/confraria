@@ -3,15 +3,34 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { HEADLINES, MAX_HEADLINES } from "@/lib/perfil";
 import type { PerfilEditavel } from "@/lib/perfil-db";
+
+function chip(ativo: boolean, bloqueado = false) {
+  return `rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+    bloqueado ? "cursor-not-allowed opacity-40" : ""
+  } ${
+    ativo
+      ? "border-gold-lo bg-gold/10 text-gold-hi"
+      : "border-line bg-surface text-muted hover:border-gold/30 hover:text-text"
+  }`;
+}
 
 export function EditarPerfilForm({ inicial }: { inicial: PerfilEditavel }) {
   const router = useRouter();
-  const [headline, setHeadline] = useState(inicial.headline ?? "");
+  const [headline, setHeadline] = useState<string[]>(inicial.headline);
   const [localizacao, setLocalizacao] = useState(inicial.localizacao ?? "");
   const [bio, setBio] = useState(inicial.bio ?? "");
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
+
+  function alternarHeadline(h: string) {
+    setHeadline((a) => {
+      if (a.includes(h)) return a.filter((x) => x !== h);
+      if (a.length >= MAX_HEADLINES) return a;
+      return [...a, h];
+    });
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,20 +57,39 @@ export function EditarPerfilForm({ inicial }: { inicial: PerfilEditavel }) {
   return (
     <form onSubmit={onSubmit} className="w-full max-w-lg" noValidate>
       <div className="mb-4">
-        <label
-          htmlFor="headline"
-          className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
-        >
-          Headline
+        <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted">
+          Especialidades
         </label>
-        <input
-          id="headline"
-          className="field-input !pl-4"
-          placeholder="Ex: Editor de vídeo · cortes de impacto"
-          value={headline}
-          onChange={(e) => setHeadline(e.target.value)}
-        />
-        <p className="mt-1.5 text-xs text-muted-2">Uma linha, aparece embaixo do seu nome.</p>
+        <p className="mb-3 text-xs text-muted-2">
+          Até {MAX_HEADLINES}. Aparecem embaixo do seu nome no perfil.
+        </p>
+        <div className="flex flex-col gap-3">
+          {HEADLINES.map((grupo) => (
+            <div key={grupo.categoria}>
+              <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-2">
+                {grupo.categoria}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {grupo.tags.map((h) => {
+                  const ativo = headline.includes(h);
+                  const bloqueado = !ativo && headline.length >= MAX_HEADLINES;
+                  return (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => alternarHeadline(h)}
+                      disabled={bloqueado}
+                      aria-pressed={ativo}
+                      className={chip(ativo, bloqueado)}
+                    >
+                      {h}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="mb-4">

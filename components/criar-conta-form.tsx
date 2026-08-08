@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export function CriarContaForm() {
   const router = useRouter();
-  const [papel, setPapel] = useState<"voz" | "editor">("voz");
+  const searchParams = useSearchParams();
+  const [papel, setPapel] = useState<"voz" | "editor">(
+    () => (searchParams.get("papel") === "editor" ? "editor" : "voz")
+  );
   const [nome, setNome] = useState("");
   const [apelido, setApelido] = useState("");
   const [email, setEmail] = useState("");

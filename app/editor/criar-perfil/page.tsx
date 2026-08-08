@@ -13,7 +13,7 @@ export default async function CriarPerfilEditorPage() {
   const inicial = (await lerOnboardingEditor(sessao.id)) ?? {
     nome: sessao.nome,
     localizacao: "",
-    headline: "",
+    headline: [],
     bio: "",
     softwares: [],
     estilos: [],

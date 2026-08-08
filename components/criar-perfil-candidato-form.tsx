@@ -17,6 +17,15 @@ import {
 } from "@/lib/candidatos";
 import type { OnboardingCandidato } from "@/lib/candidato-db";
 import { IconInstagram, IconTiktok, IconX, IconYoutube } from "@/components/icones-redes";
+import { SelectEstadoCidade } from "@/components/select-estado-cidade";
+
+/** extrai UF e cidade de um valor salvo no formato "Cidade/UF" ou "Cidade, UF" */
+function parseLocalizacao(valor: string): { uf: string; cidade: string } {
+  if (!valor) return { uf: "", cidade: "" };
+  const match = valor.match(/^(.+?)[/,]\s*([A-Z]{2})$/);
+  if (match) return { uf: match[2], cidade: match[1].trim() };
+  return { uf: "", cidade: "" };
+}
 
 type Aba = "objetivo" | "estilo" | "canais";
 
@@ -46,7 +55,9 @@ export function CriarPerfilCandidatoForm({ inicial }: { inicial: OnboardingCandi
   const [cargo, setCargo] = useState(inicial.cargo);
   const [disputaPor, setDisputaPor] = useState(inicial.disputaPor);
   const [anoEleicao, setAnoEleicao] = useState(inicial.anoEleicao || "2026");
-  const [local, setLocal] = useState(inicial.localizacao);
+  const parsed = parseLocalizacao(inicial.localizacao);
+  const [estadoUf, setEstadoUf] = useState(parsed.uf);
+  const [cidadeNome, setCidadeNome] = useState(parsed.cidade);
   const [bandeiras, setBandeiras] = useState<string[]>(inicial.bandeiras);
 
   const [tom, setTom] = useState(inicial.tomComunicacao);
@@ -65,7 +76,7 @@ export function CriarPerfilCandidatoForm({ inicial }: { inicial: OnboardingCandi
     setAba(a);
     if (a === "estilo" && !bioAutoTentada.current && !bio.trim()) {
       bioAutoTentada.current = true;
-      const sugestao = gerarBioSugerida({ cargo, disputaPor, local, bandeiras, tom });
+      const sugestao = gerarBioSugerida({ cargo, disputaPor, local: cidadeNome ? `${cidadeNome}/${estadoUf}` : "", bandeiras, tom });
       if (sugestao) setBio(sugestao);
     }
   }
@@ -98,7 +109,7 @@ export function CriarPerfilCandidatoForm({ inicial }: { inicial: OnboardingCandi
   }
 
   function gerarSugestaoBio() {
-    const sugestao = gerarBioSugerida({ cargo, disputaPor, local, bandeiras, tom });
+    const sugestao = gerarBioSugerida({ cargo, disputaPor, local: cidadeNome ? `${cidadeNome}/${estadoUf}` : "", bandeiras, tom });
     if (sugestao) setBio(sugestao);
   }
 
@@ -117,7 +128,7 @@ export function CriarPerfilCandidatoForm({ inicial }: { inicial: OnboardingCandi
       setAba("objetivo");
       return;
     }
-    if (!local.trim()) {
+    if (!cidadeNome.trim()) {
       setErro("Conta mais ou menos onde você fica.");
       setAba("objetivo");
       return;
@@ -134,7 +145,7 @@ export function CriarPerfilCandidatoForm({ inicial }: { inicial: OnboardingCandi
         cargo,
         disputaPor,
         anoEleicao,
-        localizacao: local,
+        localizacao: cidadeNome ? `${cidadeNome}/${estadoUf}` : "",
         bandeiras,
         tomComunicacao: tom,
         palavrasChave,
@@ -154,7 +165,7 @@ export function CriarPerfilCandidatoForm({ inicial }: { inicial: OnboardingCandi
     router.refresh();
   }
 
-  const checklist = [nome, cargo, disputaPor, local, bio, tom];
+  const checklist = [nome, cargo, disputaPor, cidadeNome, bio, tom];
   const progresso = Math.round(
     (checklist.filter((c) => c.trim() !== "").length / checklist.length) * 100
   );
@@ -342,21 +353,12 @@ export function CriarPerfilCandidatoForm({ inicial }: { inicial: OnboardingCandi
             </div>
 
             <div className="mt-4">
-              <label
-                htmlFor="local"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-muted"
-              >
-                Região
-              </label>
-              <input
-                id="local"
-                className="field-input !pl-4"
-                placeholder="Ex: Petrópolis, RJ"
-                value={local}
-                onChange={(e) => {
-                  setLocal(e.target.value);
-                  setErro("");
-                }}
+              <SelectEstadoCidade
+                valorEstado={estadoUf}
+                valorCidade={cidadeNome}
+                onChangeEstado={setEstadoUf}
+                onChangeCidade={setCidadeNome}
+                labelCidade="Região"
               />
             </div>
           </div>
@@ -611,7 +613,7 @@ export function CriarPerfilCandidatoForm({ inicial }: { inicial: OnboardingCandi
                   {disputaPor && <span className="text-muted-2"> — {disputaPor}</span>}
                   {anoEleicao && <span className="text-muted-2"> · {anoEleicao}</span>}
                 </p>
-                <p className="mt-0.5 text-xs text-muted-2">{local || "—"}</p>
+                <p className="mt-0.5 text-xs text-muted-2">{cidadeNome ? `${cidadeNome}/${estadoUf}` : "—"}</p>
 
                 {(redes.instagram || redes.youtube || redes.tiktok || redes.x) && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-2">

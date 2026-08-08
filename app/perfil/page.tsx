@@ -79,7 +79,7 @@ export default async function PerfilPage() {
                   {nivel.atual.nome}
                 </span>
               </div>
-              <p className="mt-1 text-muted">{p.headline}</p>
+              <p className="mt-1 text-muted">{p.headline.join(" · ")}</p>
               <p className="mt-1 text-sm text-muted-2">
                 @{p.apelido} · {p.local} · na guilda desde {p.desde}
               </p>

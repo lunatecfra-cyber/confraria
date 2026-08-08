@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function EditarPerfilPage() {
   const sessao = await exigirSessao();
   const perfil = (await lerPerfilEditavel(sessao.id)) ?? {
-    headline: null,
+    headline: [],
     bio: null,
     localizacao: null,
   };

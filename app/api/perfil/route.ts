@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const { headline, bio, localizacao } = body ?? {};
 
   await salvarPerfilEditavel(sessao.id, {
-    headline: typeof headline === "string" ? headline : undefined,
+    headline: Array.isArray(headline) ? headline : undefined,
     bio: typeof bio === "string" ? bio : undefined,
     localizacao: typeof localizacao === "string" ? localizacao : undefined,
   });

@@ -8,7 +8,7 @@ import { sql } from "@/lib/db";
 import type { ItemPortfolio, Nivel, PerfilEditor } from "@/lib/perfil";
 
 export type PerfilEditavel = {
-  headline: string | null;
+  headline: string[];
   bio: string | null;
   localizacao: string | null;
 };
@@ -19,7 +19,7 @@ export async function lerPerfilEditavel(userId: number): Promise<PerfilEditavel 
   `;
   if (!linha) return null;
   return {
-    headline: linha.headline ?? null,
+    headline: normalizarLista(linha.headline),
     bio: linha.bio ?? null,
     localizacao: linha.localizacao ?? null,
   };
@@ -27,11 +27,11 @@ export async function lerPerfilEditavel(userId: number): Promise<PerfilEditavel 
 
 export async function salvarPerfilEditavel(
   userId: number,
-  dados: { headline?: string; bio?: string; localizacao?: string }
+  dados: { headline?: string[]; bio?: string; localizacao?: string }
 ): Promise<void> {
   await sql`
     UPDATE users SET
-      headline = ${dados.headline?.trim() || null},
+      headline = ${dados.headline ? sql.json(dados.headline) : null},
       bio = ${dados.bio?.trim() || null},
       localizacao = ${dados.localizacao?.trim() || null}
     WHERE id = ${userId}
@@ -41,7 +41,7 @@ export async function salvarPerfilEditavel(
 export type OnboardingEditor = {
   nome: string;
   localizacao: string;
-  headline: string;
+  headline: string[];
   bio: string;
   softwares: string[];
   estilos: string[];
@@ -52,6 +52,16 @@ export type OnboardingEditor = {
   disponibilidade: boolean[][];
   perfilCompleto: boolean;
 };
+
+/**
+ * Normaliza headline: aceita tanto string[] (novo jsonb) quanto string (legado).
+ * Se for string não-vazia, devolve array com esse único elemento.
+ */
+function normalizarLista(valor: unknown): string[] {
+  if (Array.isArray(valor)) return valor.filter((x) => typeof x === "string");
+  if (typeof valor === "string" && valor.trim()) return [valor];
+  return [];
+}
 
 /**
  * Devolve a grade sempre como boolean[][], ou [] se não der.
@@ -81,7 +91,7 @@ export async function lerOnboardingEditor(userId: number): Promise<OnboardingEdi
   return {
     nome: l.nome ?? "",
     localizacao: l.localizacao ?? "",
-    headline: l.headline ?? "",
+    headline: normalizarLista(l.headline),
     bio: l.bio ?? "",
     softwares: l.softwares ?? [],
     estilos: l.estilos ?? [],
@@ -99,7 +109,7 @@ export async function salvarOnboardingEditor(
   dados: {
     nome: string;
     localizacao?: string;
-    headline?: string;
+    headline?: string[];
     bio?: string;
     softwares?: string[];
     estilos?: string[];
@@ -128,7 +138,7 @@ export async function salvarOnboardingEditor(
     UPDATE users SET
       nome = ${nome},
       localizacao = ${dados.localizacao?.trim() || null},
-      headline = ${dados.headline?.trim() || null},
+      headline = ${dados.headline ? sql.json(dados.headline) : null},
       bio = ${dados.bio?.trim() || null},
       softwares = ${dados.softwares ?? []},
       estilos = ${estilos},
@@ -173,7 +183,7 @@ export async function lerPerfilEditor(userId: number): Promise<PerfilEditor | nu
   return {
     apelido: conta.apelido,
     nome: conta.nome,
-    headline: conta.headline ?? "",
+    headline: normalizarLista(conta.headline),
     local: conta.localizacao ?? "",
     desde: new Date(conta.criado_em).toLocaleDateString("pt-BR", {
       month: "long",
